@@ -1,0 +1,17 @@
+{
+    "name": "jletrondo/csv_reader",
+    "description": "A custom CSV reader",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Jletrondo\\CsvReader\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "jesrel",
+            "email": "jletrondo@geniihut.com"
+        }
+    ],
+    "require": {}
+}
