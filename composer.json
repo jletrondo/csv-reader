@@ -11,5 +11,7 @@
       "src/helpers.php"
     ]
   },
-  "require": {}
+  "require": {
+    "php": ">=8.2"
+  }
 }
