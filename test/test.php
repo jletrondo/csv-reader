@@ -2,10 +2,47 @@
 
 require 'vendor/autoload.php';
 
-// use Jletrondo\CsvReader\Reader;
+use Jletrondo\CsvReader\CsvReader;
 
-// $reader = new Reader();
+$columns = [
+    [
+        'name'        => 'centercode', 
+        'column_name' => 'company', 
+        'type'        => 'string', 
+        'max_length'  => 7, 
+        'validate'    => 'required|to_upper'
+    ],
+    [
+        'name'        => 'classification_code', 
+        'column_name' => 'payroll classification', 
+        'type'        => 'string',
+        'max_length'  => 20, 
+        'validate'    => 'required|to_upper'
+    ],
+    [
+        'name'        => 'companycode',
+        'column_name' => 'costcenter',
+        'type'        => 'string',
+        'max_length'  => 20,
+        'validate'    => 'required|to_upper'
+    ],
+	[
+        'name'        => 'clntcode',
+        'column_name' => 'division',
+        'type'        => 'string',
+        'max_length'  => 20,
+        'validate'    => 'required|to_upper'
+    ],
+];
 
-// $reader->test();
+$reader = new CsvReader([
+    'columns' => $columns
+]);
 
-echo "test";
+try {
+    
+    $result = $reader->read(__DIR__ . '/file.csv');
+    print_r($result);
+} catch (Exception $e) {
+    echo "Error: " . $e->getMessage();
+}

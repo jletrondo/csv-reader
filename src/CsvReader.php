@@ -28,8 +28,7 @@ class CsvReader
     private $columns = []; // Array of all columns defined for validation
     
     private $unique_values = []; // Array to track unique values for validation
-    private $is_downloadable = true; // Indicates if the error file can be downloaded
-    private $directory_path = 'uploads/errors/employee_importation/'; // Path where errors of uploaded CSV are stored
+    private $directory_path = 'test/errors/'; // Path where errors of uploaded CSV are stored
     private $file_name = "rows_with_errors.csv"; // Name of the error file
     private $error_threshold = 1000; // if error count exceeds this threshold, the csv reader stops reading the data.
 
@@ -44,6 +43,8 @@ class CsvReader
         'error_count' => 0 // The sum of all errors in all columns
     ];
 
+    private $is_downloadable = true; // Indicates if the error file can be downloaded
+
     /**
      * Constructor to initialize the CsvReader with optional parameters.
      *
@@ -51,8 +52,8 @@ class CsvReader
      */
     public function __construct($params = [])
     {
-        $this->CI =& get_instance();
-        $this->CI->load->helper('custom_helper'); // Load your custom helper
+        // $this->CI =& get_instance();
+        // $this->CI->load->helper('custom_helper'); // Load your custom helper
         if (!empty($params)) {
             $this->initialize($params);
         }
@@ -74,7 +75,7 @@ class CsvReader
 
     public function test()
     {
-        echo "testing";
+        echo validate_date('05/15/1993');
     }
 
     // Setters for the properties
@@ -101,11 +102,6 @@ class CsvReader
     public function setColumns(array $columns): void
     {
         $this->columns = $columns; // Set columns
-    }
-
-    public function setIsDownloadable(bool $is_downloadable): void
-    {
-        $this->is_downloadable = $is_downloadable; // Set if the error file is downloadable
     }
 
     public function setDirectoryPath(string $directory_path): void
@@ -232,7 +228,6 @@ class CsvReader
             if($errorCount > $this->error_threshold) {
                 $this->results['status'] = true;
                 $this->results['error_count'] = $errorCount;
-                $this->results['downloadable'] = $this->is_downloadable; // Set downloadable status
                 $this->results['error'] = "The uploaded file has too many errors. Please take time to review and try again.";
                 $this->results['total_error_rows'] = $totalErrorRows;
                 return $this->results;
@@ -343,13 +338,10 @@ class CsvReader
         $this->results['total_error_rows'] = $totalErrorRows; // Count total error rows
         $this->results['error_count'] = count($this->results['errors']); // The sum of all errors in all columns
 
-        // Call downloadErrorRows if there are errors
-        if ($this->is_downloadable && !empty($this->results['errors'])) {
-            $this->results['rows_with_errors'] = array_unique($this->results['rows_with_errors'], SORT_REGULAR); // Remove duplicate error rows
-            $stored = $this->storeErrorRows($this->results['rows_with_errors'], $header); // Store error rows in a CSV file
-            // $results['file_path'] = $stored['file_path']; // Get the path of the stored error file
+        if ($this->is_downloadable) {
+            $this->storeErrorRows($this->results['rows_with_errors'], $header); // Store error rows in a CSV file
             $this->results['downloadable'] = $this->is_downloadable; // Set downloadable status
-            unset($this->results['rows_processed']); // 
+            unset($this->results['rows_processed']);
         }
 
         return $this->results; // Return the results of the read operation
@@ -572,26 +564,6 @@ class CsvReader
         fclose($output); // Close the output file
 
         return ['file_path' => $outputPath]; // Return the path to the stored CSV file
-    }
-
-    /**
-     * Download the stored CSV file containing rows with errors.
-     *
-     * This method checks if the error file exists and is downloadable, then initiates a download
-     * of the file containing the rows with errors.
-     *
-     * @return void
-     */
-    public function downloadErrorRows(): void
-    {
-        $file_path = $this->directory_path . $this->file_name; // Get the path of the error file
-        
-        if (file_exists($file_path) && $this->is_downloadable) {
-            $CI =& get_instance(); // Get the CodeIgniter instance
-            $CI->load->helper('download'); // Load the download helper
-            $data = file_get_contents($file_path); // Get the contents of the error file
-            force_download('errors.csv', $data); // Force download the error file
-        }
     }
 
     /**
