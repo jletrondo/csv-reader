@@ -4,45 +4,79 @@ require 'vendor/autoload.php';
 
 use Jletrondo\CsvReader\CsvReader;
 
-$columns = [
-    [
-        'name'        => 'centercode', 
-        'column_name' => 'company', 
-        'type'        => 'string', 
-        'max_length'  => 7, 
-        'validate'    => 'required|to_upper'
-    ],
-    [
-        'name'        => 'classification_code', 
-        'column_name' => 'payroll classification', 
-        'type'        => 'string',
-        'max_length'  => 20, 
-        'validate'    => 'required|to_upper'
-    ],
-    [
-        'name'        => 'companycode',
-        'column_name' => 'costcenter',
-        'type'        => 'string',
-        'max_length'  => 20,
-        'validate'    => 'required|to_upper'
-    ],
-	[
-        'name'        => 'clntcode',
-        'column_name' => 'division',
-        'type'        => 'string',
-        'max_length'  => 20,
-        'validate'    => 'required|to_upper'
-    ],
-];
+class CsvProcessor
+{
+    private $columns;
+    private $reader;
 
-$reader = new CsvReader([
-    'columns' => $columns
-]);
+    public function __construct()
+    {
+        $this->columns = [
+            [
+                // 'name'        => 'company', 
+                'column_name' => 'company', 
+                'type'        => 'string', 
+                'max_length'  => 7, 
+                'validate'    => 'uppercase'
+            ],
+            [
+                'name'        => 'name', 
+                'column_name' => 'fullname',
+                'type'        => 'string',
+                'max_length'  => 20, 
+                'validate'    => 'required|uppercase'
+            ],
+            [
+                'name'        => 'bdate',
+                'column_name' => 'birth date',
+                'type'        => 'date',
+                'max_length'  => 20,
+                'validate'    => 'required|uppercase'
+            ],
+            [
+                'name'        => 'status',
+                'column_name' => 'active',
+                'type'        => 'string',
+                'max_length'  => 20,
+                'validate'    => 'required|uppercase'
+            ],
+        ];
 
-try {
-    
-    $result = $reader->read(__DIR__ . '/file.csv');
-    print_r($result);
-} catch (Exception $e) {
-    echo "Error: " . $e->getMessage();
+        $this->reader = new CsvReader([
+            'columns' => $this->columns
+        ]);
+
+        // $this->reader->initialize([
+        //     'columns' => $this->columns
+        // ]);
+    }
+
+    public function process()
+    {
+        try {
+            $this->reader->set_callback('custom_validation', $this);
+            $result = $this->reader->read(__DIR__ . '/file.csv');
+            print_r($result);
+        } catch (Exception $e) {
+            echo "Error: " . $e->getMessage();
+        }
+    }
+
+    public function custom_validation($row, $index) 
+    {
+        $errors = [];
+
+        if (empty($row['birth date'])) {
+            $errors[] = "Birth Date is required. : (" . $row['birth date'] . ")";
+        }
+
+        return [
+            'status' => empty($errors),
+            'column_errors' => $errors ?? []
+        ];
+    }
 }
+
+// Create an instance of CsvProcessor and process the CSV file
+$csvProcessor = new CsvProcessor();
+$csvProcessor->process();

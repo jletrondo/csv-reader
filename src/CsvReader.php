@@ -3,47 +3,133 @@
 namespace Jletrondo\CsvReader;
 
 use DateTime;
+use Exception;
 
 class CsvReader
 {
-    private $CI;
-    private $callback; // Callback function for processing each row
-    private $callback_context; // Context in which the callback function exists
-
-    private $delimiter = ','; // Character used to separate values in the CSV file
-    private $enclosure = '"'; // Character used to enclose values in the CSV file
-    private $escape = '\\'; // Character used to escape special characters
-    private $has_header = true; // Indicates if the CSV file has a header row
-    private $header_count = 0; // Count of headers in the CSV file
+    /**
+     * @var callable|null $callback
+     * Callback function to process each row after validation.
+     * The function should accept two parameters: the associative row array and the row index.
+     */
+    private $callback;
 
     /**
-     * Patterns to detect mojibake (garbled text due to encoding issues) in CSV values.
-     * Used for validation in validateColumns.
+     * @var object|null $callback_context
+     * The context (object instance) in which the callback function is executed.
+     * This allows the callback to access properties and methods of the given object.
+     */
+    private $callback_context;
+
+    /**
+     * @var string $delimiter
+     * The character used to separate values in the CSV file.
+     * Default is a comma (',').
+     */
+    private $delimiter = ',';
+
+    /**
+     * @var string $enclosure
+     * The character used to enclose values in the CSV file.
+     * Default is a double quote ('"').
+     */
+    private $enclosure = '"';
+
+    /**
+     * @var string $escape
+     * The character used to escape special characters in the CSV file.
+     * Default is a backslash ('\\').
+     */
+    private $escape = '\\';
+
+    /**
+     * @var bool $has_header
+     * Indicates whether the CSV file contains a header row.
+     * If true, the first row is treated as the header.
+     */
+    private $has_header = true;
+
+    /**
+     * @var int $header_count
+     * The number of headers detected in the CSV file.
+     * This is set after reading the header row.
+     */
+    private $header_count = 0;
+
+    /**
+     * @var string $mojibake_pattern
+     * Regular expression pattern to detect mojibake (garbled text due to encoding issues)
+     * in CSV values. Used for validation in validateColumns().
      */
     private $mojibake_pattern = '/Ã|Â|â€“|â€œ|â€|Ã©|ÿþ|þÿ|â€™|â€”|â€¦|â€˜|â€¢|â„¢|âˆ’|âˆž|â‚¬|â„—|â€º|â€¹/';
-    /**
-     * Array of required column names. Ensure that the column names defined here match exactly
-     * with the headers in the CSV file for proper validation.
-     */
-    private $columns = []; // Array of all columns defined for validation
-    
-    private $unique_values = []; // Array to track unique values for validation
-    private $directory_path = 'test/errors/'; // Path where errors of uploaded CSV are stored
-    private $file_name = "rows_with_errors.csv"; // Name of the error file
-    private $error_threshold = 1000; // if error count exceeds this threshold, the csv reader stops reading the data.
 
-    private $results = [  // this array holds all the results of the library as associative array.
+    /**
+     * @var array $columns
+     * Array of required column names for validation.
+     * Ensure that the column names defined here match exactly with the headers in the CSV file.
+     */
+    private $columns = [];
+
+    /**
+     * @var array $unique_values
+     * Array to track unique values for validation purposes (e.g., to enforce uniqueness constraints).
+     * The structure and usage depend on the validation logic implemented.
+     */
+    private $unique_values = [];
+
+    /**
+     * @var int $error_threshold
+     * The maximum number of errors allowed before the CSV reader stops processing further rows.
+     * Default is 1000.
+     */
+    private $error_threshold = 1000;
+
+    /**
+     * @var array $results
+     * Associative array holding the results of the CSV reading and validation process.
+     * - status: (bool) Overall status of the operation.
+     * - error: (string) Error message, if any.
+     * - processed: (int) Number of successfully processed rows.
+     * - errors: (array) List of error messages and their corresponding row indices.
+     * - rows_processed: (array) List of successfully processed rows.
+     * - rows_with_errors: (array) List of rows that failed validation or processing.
+     * - total_error_rows: (int) Number of rows with errors.
+     * - error_count: (int) Total number of errors across all rows and columns.
+     */
+    private $results = [
         'status' => false,
-        'error' => "", // error message
-        'processed' => 0, // Count of processed rows
-        'errors' => [], // Array to hold errors
-        'rows_processed' => [], // Array to hold successfully processed rows
-        'rows_with_errors' => [], // Array to hold rows with errors
+        'error' => "",
+        'processed' => 0,
+        'errors' => [],
+        'rows_processed' => [],
+        'rows_with_errors' => [],
         'total_error_rows' => 0,
-        'error_count' => 0 // The sum of all errors in all columns
+        'error_count' => 0
     ];
 
-    private $is_downloadable = true; // Indicates if the error file can be downloaded
+    /**
+     * Indicates whether the library should generate a downloadable CSV file
+     * containing rows that failed validation or processing.
+     *
+     * @var bool
+     */
+    private $is_downloadable = false;
+
+    /**
+     * The directory path where the error CSV file (containing invalid rows)
+     * will be stored if $is_downloadable is set to true.
+     *
+     * @var string
+     */
+    private $directory_path = 'test/errors/';
+
+    /**
+     * The filename to use for the generated CSV file containing rows with errors.
+     *
+     * @var string
+     */
+    private $file_name = "rows_with_errors.csv";
+    
 
     /**
      * Constructor to initialize the CsvReader with optional parameters.
@@ -128,6 +214,16 @@ class CsvReader
     {
         $this->error_threshold = $error_threshold;
     }
+
+    public function setIsDownloadable(bool $is_downloadable): void
+    {
+        $this->is_downloadable = $is_downloadable;
+    }
+
+    public function getIsDownloadable(): bool
+    {
+        return $this->is_downloadable;
+    }
     
     /**
      * Set a callback method for processing each row.
@@ -164,6 +260,11 @@ class CsvReader
      */
     public function read(string $file_path, ?callable $callback = null): array
     {
+        $rowIndex = 0; // Initialize row index
+        $header = []; // Initialize header array
+        $errorCount = 0; 
+        $totalErrorRows = 0; // Total count of error rows
+
         if (!file_exists($file_path)) {
             $this->results['error'] = 'File does not exist: ' . $file_path;
             return $this->results; // Return error if file does not exist
@@ -199,23 +300,18 @@ class CsvReader
             fwrite($handle, $content); // Write converted content to temporary file
             rewind($handle); // Reset file pointer
         }
-
-        $rowIndex = 0; // Initialize row index
-        $header = []; // Initialize header array
-        $headerCount = 0; // Initialize header count
-        $errorCount = 0; 
-        $totalErrorRows = 0; // Total count of error rows
         
-        $uniqueValues = []; // Track unique values for all unique columns
-        $duplicateRows = []; // Track rows that are duplicates
-
-
         // Step 1: Precompile column mappings (Done once, not for every row)
         $columnNameToKey = [];
-        $countColumns = count($this->columns);
-        for ($i = 0; $i < $countColumns; $i++) {
-            $headerName = $this->columns[$i]['column_name'];
-            $key = $this->columns[$i]['name'];
+        foreach ($this->columns as $column) {
+            $headerName = $column['column_name'] ?? null;
+            $key = $column['name'] ?? null;
+            if (empty($headerName) || empty($key)) {
+                fclose($handle);
+                $this->results['status'] = false;
+                $this->results['error'] = "Column definition error: Each column must have both a 'column_name' (the CSV header) and a 'name' (the key for the resulting array). Please review your column definitions and ensure these fields are present for every column.";
+                return $this->results;
+            }
             $columnNameToKey[$headerName] = $key;
         }
 
@@ -224,7 +320,6 @@ class CsvReader
             $rowIndex++; // Increment row index
 
             // Exit if too may errors
-            // $errorCount = count($this->results['errors']);
             if($errorCount > $this->error_threshold) {
                 $this->results['status'] = true;
                 $this->results['error_count'] = $errorCount;
@@ -319,7 +414,7 @@ class CsvReader
             }
 
             // Step 4: Build processed row with 'name' instead of 'column_name'
-            // to be ready for the insertion of the data in the database.
+            // to be ready for the insertion of the data in the database or further processing.
             $processedRow = [];
             for ($i = 0; $i < count($assoc_row); $i++) {
                 $headerName = array_keys($assoc_row)[$i];
@@ -405,23 +500,23 @@ class CsvReader
                 $value = $assoc_row[$column_name]; // Get the value for validation
 
                 // 1. Unicode replacement character, disallowed symbols, and mojibake patterns
-                $pattern = '/[\x{FFFD}□▯▢]/u' . (isset($this->mojibake_patterns) && is_string($this->mojibake_patterns) ? '|' . trim($this->mojibake_patterns, '/') : '');
-                if (preg_match($pattern, $value)) {
+                $pattern = '/[\x{FFFD}□▯▢]/u';
+                if (preg_match($pattern, $value) || preg_match($this->mojibake_pattern, $value)) {
                     $errors[] = "$encoding_error_msg '{$column_name}'.";
-                }
-
-                if (preg_match($this->mojibake_pattern, $value)) {
-                    $errors[] = "$encoding_error_msg '{$column_name}'.";
-                }
-
-                if ($expected_type == 'date') {
-                    $value = date('m/d/Y', strtotime($value));
-                    $assoc_row[$column_name] = $value;
                 }
 
                 // 1. Type validation
                 if (!empty($expected_type) && !$this->validateType($value, $expected_type)) {
-                    $errors[] = "Invalid type for column '{$column_name}': expected {$expected_type}, got '{$value}'"; // Log error for invalid type
+                    if ($expected_type === 'date') {
+                        if(validate_date($value)) {
+                            $value = date('m/d/Y', strtotime($value));
+                            $assoc_row[$column_name] = $value;
+                        } else {
+                            $errors[] = "Invalid date format in column '{$column_name}'. Please use one of the following formats: m/d/Y, m-d-Y, Y/m/d, or Y-m-d.";
+                        }
+                    } else {
+                        $errors[] = "Invalid type for column '{$column_name}': expected {$expected_type}, got '{$value}'"; // Log error for invalid type
+                    }
                 }
 
                 // 2. Length validation
@@ -441,10 +536,10 @@ class CsvReader
             if (isset($assoc_row[$column_name]) && is_string($assoc_row[$column_name])) {
                 foreach ($optional_validations as $validation) {
                     switch ($validation) {
-                        case 'to_lower':
+                        case 'lowercase':
                             $assoc_row[$column_name] = strtoupper($assoc_row[$column_name]);
                             break;
-                        case 'to_upper':
+                        case 'uppercase':
                             $assoc_row[$column_name] = strtoupper($assoc_row[$column_name]);
                             break;
                         case 'strip_tags':
@@ -588,8 +683,6 @@ class CsvReader
                 return is_float($value) || (is_string($value) && is_numeric($value)); // Validate float type
             case 'boolean':
                 return is_bool($value) || in_array(strtolower($value), ['true', 'false'], true); // Validate boolean type
-            case 'date':
-                return validate_date($value);
             default:
                 return false; // Return false for unknown types
         }

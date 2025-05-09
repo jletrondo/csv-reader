@@ -19,10 +19,8 @@ if (!function_exists('validate_date')) {
         // Define the acceptable date formats
         $formats = [
             'm/d/Y',
-            'd/m/Y',
             'Y/m/d',
             'm-d-Y',
-            'd-m-Y',
             'Y-m-d',
         ];
         foreach ($formats as $format) {
@@ -64,4 +62,24 @@ if (!function_exists('custom_list_ul')) {
 
         return $html;
     }
+}
+
+function isValidDateMultipleFormats($dateString) {
+    $formats = [
+            'm/d/Y',
+            'd/m/Y',
+            'Y/m/d',
+            'm-d-Y',
+            'd-m-Y',
+            'Y-m-d',
+        ];
+
+    foreach ($formats as $format) {
+        $dt = DateTime::createFromFormat($format, $dateString);
+        if ($dt && $dt->format($format) === $dateString) {
+            return true;
+        }
+    }
+
+    return false;
 }

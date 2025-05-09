@@ -3,6 +3,12 @@
   "description": "A simple CSV reader library for PHP.",
   "type": "library",
   "license": "MIT",
+  "authors": [
+    {
+      "name": "Jesrel",
+      "email": "jletrondo15@gmail.com"
+    }
+  ],
   "autoload": {
     "psr-4": {
       "Jletrondo\\CsvReader\\": "src/"
