@@ -12,7 +12,7 @@ namespace Jletrondo\CsvReader;
 To use the CsvReader library, include the file in your project and ensure that you have the necessary dependencies installed. You can install it via Composer:
 
 ```bash
-composer require jletrondo/csvreader
+composer require jletrondo/csv-reader
 ```
 
 ## Usage
