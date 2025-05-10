@@ -13,7 +13,7 @@ class CsvProcessor
     {
         $this->columns = [
             [
-                // 'name'        => 'company', 
+                'name'        => 'company', 
                 'column_name' => 'company', 
                 'type'        => 'string', 
                 'max_length'  => 7, 
