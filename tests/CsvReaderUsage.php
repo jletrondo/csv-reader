@@ -16,28 +16,30 @@ class CsvProcessor
                 'name'        => 'company', 
                 'column_name' => 'company', 
                 'type'        => 'string', 
-                'max_length'  => 7, 
+                'min_length'  => 5, 
+                'max_length'  => 7,
                 'validate'    => 'uppercase'
             ],
             [
                 'name'        => 'name', 
                 'column_name' => 'fullname',
                 'type'        => 'string',
-                'max_length'  => 20, 
+                'max_length'  => 15, 
                 'validate'    => 'required|uppercase'
             ],
             [
                 'name'        => 'bdate',
                 'column_name' => 'birth date',
                 'type'        => 'date',
-                'max_length'  => 20,
+                'max_length'  => 11,
                 'validate'    => 'required|uppercase'
             ],
             [
                 'name'        => 'status',
                 'column_name' => 'active',
                 'type'        => 'string',
-                'max_length'  => 20,
+                'max_length'  => 3,
+                'allowed_values' => ['YES', 'NO'],
                 'validate'    => 'required|uppercase'
             ],
         ];
@@ -66,9 +68,12 @@ class CsvProcessor
     {
         $errors = [];
 
-        if (empty($row['birth date'])) {
-            $errors[] = "Birth Date is required. : (" . $row['birth date'] . ")";
+        // check if company exists
+        if ($row['company'] !== 'NWJS') {
+            $errors[] = "Company doesn't exists in the system. ('" . $row['company'] . "')";
         }
+
+
 
         return [
             'status' => empty($errors),

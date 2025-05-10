@@ -1,5 +1,5 @@
 company,fullname,birth date,active
-NWJS,John Doe,15/01/1990,YES
-NWJS,Jane Smith,23/07/1985,YES
+NWJS,John Doe,01/15/1990,MAYBE
+NWJS,Jane Smith,07/23/1985,YES
 NWJS,Michael Johnson,10/03/1978,NO
-NWJS,Emily Davis,05/11/1992,YES
+APPLE,Emily Davis,05/11/1992,YES

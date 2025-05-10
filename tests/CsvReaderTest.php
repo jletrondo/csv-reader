@@ -235,3 +235,41 @@ test('fails when CSV contains extra headers not defined in columns', function ()
     expect($result['error'])->toContain('contains columns that are not defined');
     unlink($file);
 });
+
+test('fails when value is not in allowed_values column definition', function () {
+    $csv = <<<CSV
+        name,role
+        Alice,admin
+        Bob,user
+        Charlie,guest
+        Dave,invalid_role
+        CSV;
+    $file = tempnam(sys_get_temp_dir(), 'csv_');
+    file_put_contents($file, $csv);
+
+    $columns = [
+        [
+            'column_name' => 'name',
+            'name' => 'name',
+            'type' => 'string',
+            'required' => true,
+        ],
+        [
+            'column_name' => 'role',
+            'name' => 'role',
+            'type' => 'string',
+            'required' => true,
+            'allowed_values' => ['admin', 'user', 'guest'],
+        ],
+    ];
+
+    $reader = new CsvReader(['columns' => $columns]);
+    $result = $reader->read($file);
+
+    expect($result['status'])->toBeTrue();
+    expect($result['total_error_rows'])->toBe(1);
+    expect($result['errors'])->not->toBeEmpty();
+    expect($result['errors'][0]['message'])->toContain("Invalid value in column 'role'");
+    expect($result['errors'][0]['message'])->toContain("invalid_role");
+    unlink($file);
+});

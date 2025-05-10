@@ -530,6 +530,14 @@ class CsvReader
                     $errors,
                     $this->checkForDuplicatesInUniqueColumns($value, $column, $rowIndex) // Check for duplicates
                 );
+
+                // 4. Allowed values validation
+                if (isset($column['allowed_values']) && is_array($column['allowed_values'])) {
+                    if (!in_array($value, $column['allowed_values'], true)) {
+                        $allowed = implode("', '", $column['allowed_values']);
+                        $errors[] = "Invalid value in column '{$column_name}': expected one of ['{$allowed}'], found '{$value}'.";
+                    }
+                }
             }
 
             // perform additional manipulation to the column values such as strtoupper, strip_tags, htmlentities etc. if set. in $column['change']
@@ -614,11 +622,11 @@ class CsvReader
             $length = strlen((string)$value); // Get the length of the value
 
             if (!is_null($min_length) && $length < $min_length) {
-                $errors[] = "Value too short in column '{$column_name}': minimum length {$min_length}, got length {$length}"; // Log error for short value
+                $errors[] = "The value in column '{$column_name}' is too short: Expected minimum length of {$min_length}, got {$length}"; // Log error for short value
             }
 
             if (!is_null($max_length) && $length > $max_length) {
-                $errors[] = "Value too long in column '{$column_name}': maximum length {$max_length}, got length {$length}"; // Log error for long value
+                $errors[] = "The value in column '{$column_name}' is too long: Expected maximum length of {$max_length}, got {$length}"; // Log error for long value
             }
         }
 
