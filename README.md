@@ -3,6 +3,10 @@
 ## Overview
 The CsvReader library is a PHP class designed to facilitate the reading and processing of CSV files. It provides various features for handling CSV data, including validation, error handling, and customizable processing through callback functions.
 
+## Motivation
+
+I created the CsvReader library to simplify and standardize the process of reading and validating CSV files in my PHP projects. After encountering repetitive issues with inconsistent CSV formats and error handling, I wanted a reusable solution that could be easily customized and extended for different use cases.
+
 ## Namespace
 ```php
 namespace Jletrondo\CsvReader;
