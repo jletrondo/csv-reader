@@ -121,7 +121,7 @@ class CsvReader
      *
      * @var string
      */
-    private $directory_path = 'test/errors/';
+    private $directory_path = 'tests/errors/';
 
     /**
      * The filename to use for the generated CSV file containing rows with errors.

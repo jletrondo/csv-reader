@@ -16,7 +16,7 @@ class CsvProcessor
                 'name'        => 'company', 
                 'column_name' => 'company', 
                 'type'        => 'string', 
-                'min_length'  => 5, 
+                'min_length'  => 5,
                 'max_length'  => 7,
                 'validate'    => 'uppercase'
             ],
@@ -47,6 +47,8 @@ class CsvProcessor
         $this->reader = new CsvReader([
             'columns' => $this->columns
         ]);
+
+        $this->reader->setIsDownloadable(true);
 
         // $this->reader->initialize([
         //     'columns' => $this->columns
