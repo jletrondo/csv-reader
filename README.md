@@ -81,6 +81,50 @@ public function custom_validation($row, $index)
 > **Note:** Custom validations via callback are optional. If you do not set a callback, only the built-in column validations (as defined in your `columns` array) will be applied.
 
 
+## Progress Callback Feature
+
+The `CsvReader` class now supports a **progress callback** feature, allowing you to receive updates on the progress of CSV file processing. This is especially useful for large files, as you can provide feedback to users (e.g., update a progress bar or log progress).
+
+### How It Works
+
+- You can set a progress callback function using the `setProgressCallback()` method.
+- The callback will be called periodically (every 100 rows by default) and once at the end of processing.
+- The callback receives two parameters:
+  - `$rowsProcessed` (int): The number of rows processed so far.
+  - `$totalRows` (int|null): The total number of rows, if available (may be `null` if not pre-counted).
+
+### Example Usage
+```php
+    use Jletrondo\CsvReader\CsvReader;
+    $reader = new CsvReader([
+        'columns' => $columns, // your column definitions
+    ]);
+    // Set a progress callback
+    $reader->setProgressCallback(function($processed, $total) {
+        if ($total) {
+            echo "Progress: " . round($processed / $total 100, 2) . "%\n";
+        } else {
+            echo "Rows processed: $processed\n";
+        }
+    });
+    // Optionally set other callbacks or options...
+    // $reader->set_callback('custom_validation', $yourObject);
+    $result = $reader->read('path/to/your.csv');
+```
+
+
+### Notes
+- To show CSV import progress on your website, have your progress callback save the current progress (like rows processed) somewhere your frontend can read it—such as a JSON file, cache, or database. Then, use AJAX or WebSockets on the frontend to fetch and display this progress (for example, in a progress bar). This lets users see live updates during large imports.
+- The progress callback is optional. If not set, no progress updates will be sent.
+- The callback is called every 100 rows by default. You can change this interval using the setter `setProgressCallbackInterval() ` if needed.
+- The final call to the callback is made after all rows are processed.
+
+---
+
+**See also:**  
+- [`setProgressCallback()` method in CsvReader.php](src/CsvReader.php)
+- [Example usage in tests/CsvReaderUsage.php](tests/CsvReaderUsage.php)
+
 ### Column Validations
 
 Each column definition in the `columns` parameter supports the following options:

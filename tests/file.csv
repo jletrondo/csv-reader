@@ -1,5 +1,58 @@
-company,fullname,birth date,active
-NWJS,John Doe,01/15/1990,MAYBE
-NWJS,Jane Smith,07/23/1985,YES
-NWJS,Michael Johnson,10/03/1978,NO
-APPLE,Emily Davis,05/11/1992,YES
+company,fullname,birth date,active,department,position,salary,employee_id,manager,hire_date,phone,email,address,city,state,zip
+NWJS,John Doe,01/15/1990,NO,Engineering,Developer,75000,1001,Jane Smith,03/12/2015,555-1234,john.doe@nwjs.com,123 Main St,Seattle,WA,98101
+NWJS,Jane Smith,07/23/1985,YES,Engineering,Lead Developer,90000,1002,Michael Johnson,06/18/2012,555-2345,jane.smith@nwjs.com,456 Oak Ave,Seattle,WA,98102
+NWJS,Michael Johnson,10/03/1978,NO,Engineering,Manager,110000,1003,,01/05/2010,555-3456,michael.johnson@nwjs.com,789 Pine Rd,Seattle,WA,98103
+APPLE,Emily Davis,05/11/1992,YES,Design,Designer,80000,2001,Laura Scott,09/22/2016,555-4567,emily.davis@apple.com,321 Apple St,Cupertino,CA,95014
+GOOGLE,Chris Evans,12/22/1988,NO,Marketing,Analyst,70000,3001,Daniel Lewis,11/30/2017,555-5678,chris.evans@google.com,654 Google Dr,Mountain View,CA,94043
+MICROSOFT,Anna Lee,03/14/1991,YES,Product,Product Manager,95000,4001,Susan Hall,04/10/2014,555-6789,anna.lee@microsoft.com,987 Microsoft Way,Redmond,WA,98052
+AMAZON,Robert Brown,09/30/1982,NO,Logistics,Coordinator,72000,5001,Matthew Young,07/19/2013,555-7890,robert.brown@amazon.com,246 Amazon Blvd,Seattle,WA,98109
+TESLA,Jessica White,06/18/1995,YES,Engineering,Engineer,85000,6001,Patricia King,02/25/2018,555-8901,jessica.white@tesla.com,135 Tesla Rd,Fremont,CA,94538
+FACEBOOK,David Clark,11/05/1987,NO,Support,Support Rep,65000,7001,James Wright,05/14/2015,555-9012,david.clark@facebook.com,864 FB Ln,Menlo Park,CA,94025
+APPLE,Laura Scott,04/27/1993,NO,Design,Senior Designer,95000,2002,Barbara Green,08/03/2017,555-0123,laura.scott@apple.com,753 Apple St,Cupertino,CA,95014
+GOOGLE,Daniel Lewis,08/19/1980,YES,Marketing,Manager,105000,3002,Steven Adams,10/21/2011,555-1235,daniel.lewis@google.com,159 Google Dr,Mountain View,CA,94043
+MICROSOFT,Susan Hall,02/10/1986,NO,Product,Director,120000,4002,Linda Nelson,03/15/2009,555-2346,susan.hall@microsoft.com,753 Microsoft Way,Redmond,WA,98052
+AMAZON,Matthew Young,07/25/1994,YES,Logistics,Manager,98000,5002,Paul Baker,06/28/2015,555-3457,matthew.young@amazon.com,357 Amazon Blvd,Seattle,WA,98109
+TESLA,Patricia King,10/12/1983,NO,Engineering,Lead Engineer,99000,6002,Sarah Sanchez,01/12/2010,555-4568,patricia.king@tesla.com,246 Tesla Rd,Fremont,CA,94538
+FACEBOOK,James Wright,05/03/1990,NO,Support,Supervisor,80000,7002,Anthony Morris,09/09/2016,555-5679,james.wright@facebook.com,753 FB Ln,Menlo Park,CA,94025
+APPLE,Barbara Green,01/29/1989,YES,Design,Director,115000,2003,Nancy Perez,12/17/2012,555-6780,barbara.green@apple.com,951 Apple St,Cupertino,CA,95014
+GOOGLE,Steven Adams,03/16/1992,NO,Marketing,Specialist,78000,3003,George Roberts,04/23/2018,555-7891,steven.adams@google.com,357 Google Dr,Mountain View,CA,94043
+MICROSOFT,Linda Nelson,09/07/1985,YES,Product,Product Owner,102000,4003,Betty Turner,07/11/2013,555-8902,linda.nelson@microsoft.com,159 Microsoft Way,Redmond,WA,98052
+AMAZON,Paul Baker,12/13/1979,NO,Logistics,Analyst,69000,5003,Edward Phillips,10/29/2011,555-9013,paul.baker@amazon.com,468 Amazon Blvd,Seattle,WA,98109
+TESLA,Karen Carter,06/21/1996,NO,Engineering,Intern,50000,6003,Donna Campbell,05/16/2020,555-0124,karen.carter@tesla.com,369 Tesla Rd,Fremont,CA,94538
+FACEBOOK,Mark Mitchell,08/02/1981,YES,Support,Manager,90000,7003,Charles Parker,02/18/2010,555-1236,mark.mitchell@facebook.com,159 FB Ln,Menlo Park,CA,94025
+APPLE,Nancy Perez,11/17/1993,NO,Design,Designer,82000,2004,Jennifer Evans,11/22/2018,555-2347,nancy.perez@apple.com,357 Apple St,Cupertino,CA,95014
+GOOGLE,George Roberts,05/28/1984,YES,Marketing,Coordinator,72000,3004,Thomas Edwards,08/14/2014,555-3458,george.roberts@google.com,468 Google Dr,Mountain View,CA,94043
+MICROSOFT,Betty Turner,07/09/1990,NO,Product,Analyst,70000,4004,Mary Collins,03/27/2017,555-4569,betty.turner@microsoft.com,951 Microsoft Way,Redmond,WA,98052
+AMAZON,Edward Phillips,02/23/1988,NO,Logistics,Supervisor,85000,5004,Christopher Stewart,12/05/2012,555-5670,edward.phillips@amazon.com,159 Amazon Blvd,Seattle,WA,98109
+TESLA,Donna Campbell,10/30/1991,YES,Engineering,Engineer,87000,6004,Sarah Sanchez,09/09/2016,555-6781,donna.campbell@tesla.com,753 Tesla Rd,Fremont,CA,94538
+FACEBOOK,Charles Parker,04/15/1982,NO,Support,Support Rep,66000,7004,Jennifer Evans,06/11/2013,555-7892,charles.parker@facebook.com,951 FB Ln,Menlo Park,CA,94025
+APPLE,Jennifer Evans,09/12/1995,YES,Design,Designer,81000,2005,Kimberly Rogers,10/19/2019,555-8903,jennifer.evans@apple.com,159 Apple St,Cupertino,CA,95014
+GOOGLE,Thomas Edwards,01/08/1987,NO,Marketing,Analyst,71000,3005,Joshua Reed,07/23/2015,555-9014,thomas.edwards@google.com,753 Google Dr,Mountain View,CA,94043
+MICROSOFT,Mary Collins,06/04/1983,NO,Product,Manager,98000,4005,Deborah Cook,05/30/2011,555-0125,mary.collins@microsoft.com,357 Microsoft Way,Redmond,WA,98052
+AMAZON,Christopher Stewart,03/19/1992,YES,Logistics,Coordinator,73000,5005,Jason Morgan,09/14/2017,555-1237,christopher.stewart@amazon.com,468 Amazon Blvd,Seattle,WA,98109
+TESLA,Sarah Sanchez,12/27/1986,NO,Engineering,Lead Engineer,100000,6005,Michelle Bell,11/11/2012,555-2348,sarah.sanchez@tesla.com,951 Tesla Rd,Fremont,CA,94538
+FACEBOOK,Anthony Morris,08/14/1994,YES,Support,Supervisor,82000,7005,Kevin Murphy,03/22/2018,555-3459,anthony.morris@facebook.com,357 FB Ln,Menlo Park,CA,94025
+APPLE,Kimberly Rogers,05/22/1981,NO,Design,Senior Designer,97000,2006,Sharon Bailey,08/08/2010,555-4560,kimberly.rogers@apple.com,468 Apple St,Cupertino,CA,95014
+GOOGLE,Joshua Reed,11/01/1989,NO,Marketing,Specialist,79000,3006,Frank Rivera,12/19/2016,555-5671,joshua.reed@google.com,951 Google Dr,Mountain View,CA,94043
+MICROSOFT,Deborah Cook,07/17/1993,YES,Product,Product Owner,104000,4006,Carol Cooper,04/25/2015,555-6782,deborah.cook@microsoft.com,159 Microsoft Way,Redmond,WA,98052
+AMAZON,Jason Morgan,10/25/1985,NO,Logistics,Analyst,71000,5006,Scott Richardson,10/10/2013,555-7893,jason.morgan@amazon.com,753 Amazon Blvd,Seattle,WA,98109
+TESLA,Michelle Bell,02/06/1990,YES,Engineering,Engineer,86000,6006,Amy Cox,06/06/2017,555-8904,michelle.bell@tesla.com,357 Tesla Rd,Fremont,CA,94538
+FACEBOOK,Kevin Murphy,09/29/1982,NO,Support,Support Rep,67000,7006,Raymond Howard,01/29/2012,555-9015,kevin.murphy@facebook.com,951 FB Ln,Menlo Park,CA,94025
+APPLE,Sharon Bailey,04/11/1991,NO,Design,Designer,83000,2007,Angela Ward,03/03/2016,555-0126,sharon.bailey@apple.com,753 Apple St,Cupertino,CA,95014
+GOOGLE,Frank Rivera,06/23/1988,YES,Marketing,Manager,108000,3007,Gregory Torres,09/09/2011,555-1238,frank.rivera@google.com,159 Google Dr,Mountain View,CA,94043
+MICROSOFT,Carol Cooper,12/15/1978,NO,Product,Director,121000,4007,Rebecca Peterson,07/07/2008,555-2349,carol.cooper@microsoft.com,753 Microsoft Way,Redmond,WA,98052
+AMAZON,Scott Richardson,08/08/1996,YES,Logistics,Coordinator,74000,5007,Samuel Gray,11/11/2019,555-3450,scott.richardson@amazon.com,951 Amazon Blvd,Seattle,WA,98109
+TESLA,Amy Cox,03/31/1984,NO,Engineering,Lead Engineer,101000,6007,Emily Ramirez,02/02/2011,555-4561,amy.cox@tesla.com,468 Tesla Rd,Fremont,CA,94538
+FACEBOOK,Raymond Howard,01/20/1992,NO,Support,Supervisor,83000,7007,Jacob James,05/05/2017,555-5672,raymond.howard@facebook.com,159 FB Ln,Menlo Park,CA,94025
+APPLE,Angela Ward,07/13/1987,YES,Design,Senior Designer,98000,2008,Victoria Watson,10/10/2012,555-6783,angela.ward@apple.com,468 Apple St,Cupertino,CA,95014
+GOOGLE,Gregory Torres,10/02/1993,NO,Marketing,Analyst,72000,3008,Patrick Brooks,07/07/2018,555-7894,gregory.torres@google.com,951 Google Dr,Mountain View,CA,94043
+MICROSOFT,Rebecca Peterson,05/26/1985,YES,Product,Product Manager,97000,4008,Janet Kelly,09/09/2014,555-8905,rebecca.peterson@microsoft.com,357 Microsoft Way,Redmond,WA,98052
+AMAZON,Samuel Gray,09/18/1990,NO,Logistics,Supervisor,86000,5008,Justin Sanders,12/12/2015,555-9016,samuel.gray@amazon.com,159 Amazon Blvd,Seattle,WA,98109
+TESLA,Emily Ramirez,12/09/1994,NO,Engineering,Engineer,88000,6008,Stephanie Price,03/03/2020,555-0127,emily.ramirez@tesla.com,753 Tesla Rd,Fremont,CA,94538
+FACEBOOK,Jacob James,06/16/1983,YES,Support,Manager,91000,7008,Brandon Bennett,08/08/2010,555-1239,jacob.james@facebook.com,357 FB Ln,Menlo Park,CA,94025
+APPLE,Victoria Watson,03/07/1989,NO,Design,Designer,84000,2009,Nancy Perez,06/06/2017,555-2340,victoria.watson@apple.com,951 Apple St,Cupertino,CA,95014
+GOOGLE,Patrick Brooks,11/22/1991,YES,Marketing,Specialist,80000,3009,Janet Kelly,11/11/2015,555-3451,patrick.brooks@google.com,468 Google Dr,Mountain View,CA,94043
+MICROSOFT,Janet Kelly,08/05/1986,NO,Product,Analyst,72000,4009,Justin Sanders,10/10/2012,555-4562,janet.kelly@microsoft.com,951 Microsoft Way,Redmond,WA,98052
+AMAZON,Justin Sanders,02/28/1982,NO,Logistics,Coordinator,75000,5010,Stephanie Price,09/09/2018,555-5673,justin.sanders@amazon.com,357 Amazon Blvd,Seattle,WA,98109
+TESLA,Stephanie Price,07/21/1995,YES,Engineering,Engineer,89000,6010,Brandon Bennett,12/12/2019,555-6784,stephanie.price@tesla.com,159 Tesla Rd,Fremont,CA,94538
+FACEBOOK,Brandon Bennett,04/03/1988,NO,Support,Support Rep,68000,7010,John Doe,03/03/2013,555-7895,brandon.bennett@facebook.com,951 FB Ln,Menlo Park,CA,94025

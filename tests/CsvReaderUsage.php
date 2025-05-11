@@ -12,36 +12,76 @@ class CsvProcessor
     public function __construct()
     {
         $this->columns = [
-            [
-                'name'        => 'company', 
-                'column_name' => 'company', 
-                'type'        => 'string', 
-                'min_length'  => 5,
-                'max_length'  => 7,
-                'validate'    => 'uppercase'
-            ],
-            [
-                'name'        => 'name', 
-                'column_name' => 'fullname',
-                'type'        => 'string',
-                'max_length'  => 15, 
-                'validate'    => 'required|uppercase'
-            ],
-            [
-                'name'        => 'bdate',
-                'column_name' => 'birth date',
-                'type'        => 'date',
-                'max_length'  => 11,
-                'validate'    => 'required|uppercase'
-            ],
-            [
-                'name'        => 'status',
-                'column_name' => 'active',
-                'type'        => 'string',
-                'max_length'  => 3,
-                'allowed_values' => ['YES', 'NO'],
-                'validate'    => 'required|uppercase'
-            ],
+            ['name' => 'company', 'column_name' => 'company', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'nationality', 'column_name' => 'nationality', 'type' => 'string', 'max_length' => 30],
+            ['name' => 'employee_id', 'column_name' => 'employee id', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'bio_no', 'column_name' => 'bio no', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'last_name', 'column_name' => 'last name', 'type' => 'string', 'max_length' => 30],
+            ['name' => 'first_name', 'column_name' => 'first name', 'type' => 'string', 'max_length' => 30],
+            ['name' => 'middle_name', 'column_name' => 'middle name', 'type' => 'string', 'max_length' => 30],
+            ['name' => 'extension', 'column_name' => 'extension', 'type' => 'string', 'max_length' => 10],
+            ['name' => 'nickname', 'column_name' => 'nickname', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'gender', 'column_name' => 'gender', 'type' => 'string', 'max_length' => 1],
+            ['name' => 'birth_date', 'column_name' => 'birth date', 'type' => 'string', 'max_length' => 15],
+            ['name' => 'place_of_birth', 'column_name' => 'place of birth', 'type' => 'string', 'max_length' => 50],
+            ['name' => 'civil_status', 'column_name' => 'civil status', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'personal_email_address', 'column_name' => 'personal email address', 'type' => 'string', 'max_length' => 50],
+            ['name' => 'company_email_address', 'column_name' => 'company email address', 'type' => 'string', 'max_length' => 50],
+            ['name' => 'spouses_name', 'column_name' => "spouse's name", 'type' => 'string', 'max_length' => 50],
+            ['name' => 'no_of_children', 'column_name' => 'no. of children', 'type' => 'string', 'max_length' => 5],
+            ['name' => 'tin', 'column_name' => 'tin', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'sss_no', 'column_name' => 'sss no.', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'mid_no', 'column_name' => 'mid no.', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'mp2_no', 'column_name' => 'mp2 no.', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'phealth_no', 'column_name' => 'phealth no.', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'fathers_name', 'column_name' => "father's name", 'type' => 'string', 'max_length' => 50],
+            ['name' => 'mothers_maiden_name', 'column_name' => "mother's maiden name", 'type' => 'string', 'max_length' => 50],
+            ['name' => 'division', 'column_name' => 'division', 'type' => 'string', 'max_length' => 30],
+            ['name' => 'department', 'column_name' => 'department', 'type' => 'string', 'max_length' => 30],
+            ['name' => 'section', 'column_name' => 'section', 'type' => 'string', 'max_length' => 30],
+            ['name' => 'date_hired', 'column_name' => 'date hired', 'type' => 'string', 'max_length' => 15],
+            ['name' => 'activity', 'column_name' => 'activity', 'type' => 'string', 'max_length' => 10],
+            ['name' => 'activity_date', 'column_name' => 'activity date', 'type' => 'string', 'max_length' => 15],
+            ['name' => 'status', 'column_name' => 'status', 'type' => 'string', 'max_length' => 10],
+            ['name' => 'job_level', 'column_name' => 'job level', 'type' => 'string', 'max_length' => 10],
+            ['name' => 'job_grade', 'column_name' => 'job grade', 'type' => 'string', 'max_length' => 10],
+            ['name' => 'position', 'column_name' => 'position', 'type' => 'string', 'max_length' => 30],
+            ['name' => 'contract_status', 'column_name' => 'contract status', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'regularization_date', 'column_name' => 'regularization date', 'type' => 'string', 'max_length' => 15],
+            ['name' => 'payment_mode', 'column_name' => 'payment mode', 'type' => 'string', 'max_length' => 10],
+            ['name' => 'taxcode', 'column_name' => 'taxcode', 'type' => 'string', 'max_length' => 10],
+            ['name' => 'basic_rate', 'column_name' => 'basic rate', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'secondary_school', 'column_name' => 'secondary school', 'type' => 'string', 'max_length' => 50],
+            ['name' => 'sec_grad_year', 'column_name' => 'sec grad year', 'type' => 'string', 'max_length' => 10],
+            ['name' => 'college', 'column_name' => 'college', 'type' => 'string', 'max_length' => 50],
+            ['name' => 'college_degree', 'column_name' => 'college degree', 'type' => 'string', 'max_length' => 50],
+            ['name' => 'college_grad_year', 'column_name' => 'college grad year', 'type' => 'string', 'max_length' => 10],
+            ['name' => 'post_graduate', 'column_name' => 'post graduate', 'type' => 'string', 'max_length' => 50],
+            ['name' => 'postgrad_degree', 'column_name' => 'postgrad degree', 'type' => 'string', 'max_length' => 50],
+            ['name' => 'postgrad_grad_year', 'column_name' => 'postgrad grad year', 'type' => 'string', 'max_length' => 10],
+            ['name' => 'certification', 'column_name' => 'certification', 'type' => 'string', 'max_length' => 50],
+            ['name' => 'certification_year', 'column_name' => 'certification year', 'type' => 'string', 'max_length' => 10],
+            ['name' => 'immediate_superior', 'column_name' => 'immediate superior', 'type' => 'string', 'max_length' => 50],
+            ['name' => 'manager_am', 'column_name' => 'manager/AM', 'type' => 'string', 'max_length' => 50],
+            ['name' => 'head_of_department', 'column_name' => 'head of department', 'type' => 'string', 'max_length' => 50],
+            ['name' => 'referred_by', 'column_name' => 'referred by', 'type' => 'string', 'max_length' => 50],
+            ['name' => 'payroll_classification', 'column_name' => 'payroll classification', 'type' => 'string', 'max_length' => 30],
+            ['name' => 'costcenter', 'column_name' => 'costcenter', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'bankcode', 'column_name' => 'bankcode', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'account_number', 'column_name' => 'account number', 'type' => 'string', 'max_length' => 30],
+            ['name' => 'sss_employee_amount', 'column_name' => 'sss employee amount', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'sss_employer_amount', 'column_name' => 'sss employer amount', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'sss_ecc_amount', 'column_name' => 'sss ecc amount', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'provident_fund_employee_amount', 'column_name' => 'provident fund employee amount', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'provident_fund_employer_amount', 'column_name' => 'provident fund employer amount', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'philhealth_employee_amount', 'column_name' => 'philhealth employee amount', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'philhealth_employer_amount', 'column_name' => 'philhealth employer amount', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'pagibig_employee_amount', 'column_name' => 'pagibig employee amount', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'pagibig_employer_amount', 'column_name' => 'pagibig employer amount', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'withholding_tax_amount', 'column_name' => 'withholding tax amount', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'income_tax_amount', 'column_name' => 'income tax amount', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'mp2_amount', 'column_name' => 'mp2 amount', 'type' => 'string', 'max_length' => 20],
+            ['name' => 'notes', 'column_name' => 'notes', 'type' => 'string', 'max_length' => 100],
         ];
 
         $this->reader = new CsvReader([
@@ -58,9 +98,15 @@ class CsvProcessor
     public function process()
     {
         try {
+            $this->reader->setProgressCallback(function($processed, $total) {
+                if ($total) {
+                    echo "Progress: " . round($processed / $total * 100, 2) . "%\n";
+                } else {
+                    echo "Rows processed: $processed\n";
+                }
+            });
             $this->reader->set_callback('custom_validation', $this);
-            $result = $this->reader->read(__DIR__ . '/file.csv');
-            print_r($result);
+            $result = $this->reader->read(__DIR__ . '/actual_data.csv');
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
         }

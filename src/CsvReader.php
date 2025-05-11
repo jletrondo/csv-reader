@@ -224,6 +224,52 @@ class CsvReader
     {
         return $this->is_downloadable;
     }
+
+    /**
+     * @var callable|null $progress_callback
+     * Callback function to report progress.
+     * The function should accept two parameters: $rowsProcessed and $totalRows (if available).
+     */
+    private $progress_callback = null;
+
+    /**
+     * Set a callback for progress reporting.
+     *
+     * @param callable $callback The progress callback function.
+     */
+    public function setProgressCallback(callable $callback): void
+    {
+        $this->progress_callback = $callback;
+    }
+
+    /**
+     * @var int $progress_callback_interval
+     * Determines how often (in rows) the progress callback is called.
+     */
+    private $progress_callback_interval = 100;
+
+    /**
+     * Set the interval (in rows) for calling the progress callback.
+     *
+     * @param int $interval Number of rows between progress callback invocations.
+     */
+    public function setProgressCallbackInterval(int $interval): void
+    {
+        if ($interval < 1) {
+            throw new \InvalidArgumentException("Progress callback interval must be at least 1.");
+        }
+        $this->progress_callback_interval = $interval;
+    }
+
+    /**
+     * Get the current progress callback interval.
+     *
+     * @return int
+     */
+    public function getProgressCallbackInterval(): int
+    {
+        return $this->progress_callback_interval;
+    }
     
     /**
      * Set a callback method for processing each row.
@@ -264,6 +310,17 @@ class CsvReader
         $header = []; // Initialize header array
         $errorCount = 0; 
         $totalErrorRows = 0; // Total count of error rows
+
+        // --- NEW: Estimate total rows for progress reporting ---
+        $totalRows = null;
+        if (file_exists($file_path)) {
+            $totalRows = 0;
+            $fh = fopen($file_path, 'r');
+            while (fgets($fh) !== false) {
+                $totalRows++;
+            }
+            fclose($fh);
+        }
 
         if (!file_exists($file_path)) {
             $this->results['error'] = 'File does not exist: ' . $file_path;
@@ -372,6 +429,11 @@ class CsvReader
                 continue; // Skip processing this header row
             }
 
+            // --- NEW: Call progress callback every 100 rows (or as you wish) ---
+            if ($this->progress_callback && $rowIndex % $this->progress_callback_interval === 0) {
+                call_user_func($this->progress_callback, $rowIndex, $totalRows);
+            }
+
             // Build the assoc_row with precompiled mapping and trim whitespaces
             $assoc_row = $this->has_header ? array_map('trim', array_combine($header, $row)) : array_map('trim', $row);
 
@@ -426,6 +488,11 @@ class CsvReader
 
             $this->results['rows_processed'][] = $processedRow; // Add processed row to results
             $this->results['processed']++; // Increment processed row count
+        }
+
+        // --- NEW: Final progress callback at end (if not already called) ---
+        if ($this->progress_callback) {
+            call_user_func($this->progress_callback, $rowIndex, $totalRows);
         }
 
         fclose($handle); // Close the file handle
