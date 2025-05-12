@@ -71,6 +71,13 @@ class CsvReader
     private $columns = [];
 
     /**
+     * @var array $headers
+     * Stores the headers detected in the CSV file after reading the header row.
+     * This can be used for reference or for further processing.
+     */
+    private $headers = [];
+
+    /**
      * @var array $unique_values
      * Array to track unique values for validation purposes (e.g., to enforce uniqueness constraints).
      * The structure and usage depend on the validation logic implemented.
@@ -358,7 +365,7 @@ class CsvReader
             rewind($handle); // Reset file pointer
         }
         
-        // Step 1: Precompile column mappings (Done once, not for every row)
+        // Precompile column mappings (Done once, not for every row)
         $columnNameToKey = [];
         foreach ($this->columns as $column) {
             $headerName = $column['column_name'] ?? null;
@@ -397,7 +404,7 @@ class CsvReader
                 $extraColumns = array_diff($header, $expectedColumns); // Find extra columns
                 $duplicateHeaders = $this->checkForDuplicateHeaders($header);
 
-                $errorMsg = "";
+                $errorMsg = ""; 
                 if (!empty($missingColumns)) {
                     $errorMsg .= "The uploaded file is missing the following columns:" . custom_list_ul($missingColumns, ['style' => 'color: red;']);
                 }
@@ -425,7 +432,7 @@ class CsvReader
 
                 // Count non-empty header fields
                 $this->header_count = count(array_filter($header, fn($value) => $value !== '' && $value !== null));
-
+                $this->headers = $header;
                 continue; // Skip processing this header row
             }
 
