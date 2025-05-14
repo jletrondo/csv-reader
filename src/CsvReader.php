@@ -2,7 +2,6 @@
 
 namespace Jletrondo\CsvReader;
 
-use DateTime;
 use Exception;
 
 class CsvReader
@@ -164,11 +163,6 @@ class CsvReader
                 $this->{$key} = $value;
             }
         }
-    }
-
-    public function test()
-    {
-        echo validate_date('05/15/1993');
     }
 
     // Setters for the properties
@@ -465,6 +459,11 @@ class CsvReader
                     [$assoc_row, $rowIndex]
                 );
 
+                // Implement skip feature: if callback returns ['skip' => true], skip this row without error
+                if (isset($callBackResult['skip']) && $callBackResult['skip'] === true) {
+                    continue; // Skip this row, do not treat as error
+                }
+
                 if (isset($callBackResult['status']) && $callBackResult['status'] === false) {
                     // Handle errors returned from the callback
                     $this->results['rows_with_errors'][] = $assoc_row; // Add the associative row to error rows
@@ -479,6 +478,11 @@ class CsvReader
                     }
                     $totalErrorRows++;
                     continue; // Skip to the next row
+                }
+
+                // If callback returns a modified row, use it for further processing
+                if (isset($callBackResult['row']) && is_array($callBackResult['row'])) {
+                    $assoc_row = $callBackResult['row'];
                 }
             }
 
@@ -554,96 +558,156 @@ class CsvReader
 
         foreach ($this->columns as $column) {
             $column_name = $column['column_name']; // Get the column name
-            $expected_type = $column['type'] ?? null; // Get the expected type
-            $is_required = $column['required'] ?? false; // Check if the column is required
+            $expected_type = $column['type'] ?? 'string'; // Get the expected type
+            $value = $assoc_row[$column_name] ?? null;
             $value_exists = isset($assoc_row[$column_name]) && $assoc_row[$column_name] !== ''; // Check if the value exists
             $encoding_error_msg = "Unknown or invalid character or possible encoding error found in column";
+            $validation_rules = $this->parseValidationRules($column['validate'] ?? '');
+            
+            // Unicode replacement character, disallowed symbols, and mojibake patterns
+            $pattern = '/[\x{FFFD}□▯▢]/u';
+            if ($value_exists && preg_match($pattern, $value) || preg_match($this->mojibake_pattern, $value)) {
+                $errors[] = "$encoding_error_msg '{$column_name}'.";
+            }
 
-            $optional_validations = explode('|', $column['validate'] ?? '');
-
-            if ($is_required || in_array('required', $optional_validations)) {
-                // Required field check
-                if (!$value_exists) {
-                    $errors[] = "Required column '{$column_name}' is empty."; // Log error for empty required column
-                    continue; // No need to check further if required field is empty
+            // Required
+            if (isset($validation_rules['required'])) {
+                $error = $this->validateRequired($value, $column_name);
+                if ($error) {
+                    $errors[] = $error;
+                    continue;
                 }
             }
 
-            // If value exists (whether required or not)
-            if ($value_exists) {
-                $value = $assoc_row[$column_name]; // Get the value for validation
-
-                // 1. Unicode replacement character, disallowed symbols, and mojibake patterns
-                $pattern = '/[\x{FFFD}□▯▢]/u';
-                if (preg_match($pattern, $value) || preg_match($this->mojibake_pattern, $value)) {
-                    $errors[] = "$encoding_error_msg '{$column_name}'.";
-                }
-
-                // 1. Type validation
-                if (!empty($expected_type) && !$this->validateType($value, $expected_type)) {
-                    if ($expected_type === 'date') {
-                        if(validate_date($value)) {
-                            $value = date('m/d/Y', strtotime($value));
-                            $assoc_row[$column_name] = $value;
-                        } else {
-                            $errors[] = "Invalid date format in column '{$column_name}'. Please use one of the following formats: m/d/Y, m-d-Y, Y/m/d, or Y-m-d.";
-                        }
+            // Type
+            if ($value_exists && $expected_type) {
+                if ($expected_type === 'date') {
+                    if(validate_date($value)) {
+                        $value = date('m/d/Y', strtotime($value));
+                        $assoc_row[$column_name] = $value;
                     } else {
-                        $errors[] = "Invalid type for column '{$column_name}': expected {$expected_type}, got '{$value}'"; // Log error for invalid type
+                        $errors[] = "Invalid date format in column '{$column_name}'. Please use one of the following formats: m/d/Y, m-d-Y, Y/m/d, or Y-m-d.";
                     }
                 }
+                $error = $this->validateType($value, $expected_type, $column_name);
+                if ($error) $errors[] = $error;
+            }
 
-                // 2. Length validation
-                $errors = array_merge(
-                    $errors,
-                    $this->validateLength($value, $column_name, $column['min_length'] ?? null, $column['max_length'] ?? null) // Validate length
-                );
+            // Min Length
+            if ($value_exists && isset($validation_rules['min_length'])) {
+                $error = $this->validateMinLength($value, $column_name, (int)$validation_rules['min_length']);
+                if ($error) $errors[] = $error;
+            }
 
-                // 3. Unique validation
-                $errors = array_merge(
-                    $errors,
-                    $this->checkForDuplicatesInUniqueColumns($value, $column, $rowIndex) // Check for duplicates
-                );
+            // Max Length
+            if ($value_exists && isset($validation_rules['max_length'])) {
+                $error = $this->validateMaxLength($value, $column_name, (int)$validation_rules['max_length']);
+                if ($error) $errors[] = $error;
+            }
 
-                // 4. Allowed values validation
-                if (isset($column['allowed_values']) && is_array($column['allowed_values'])) {
-                    if (!in_array($value, $column['allowed_values'], true)) {
-                        $allowed = implode("', '", $column['allowed_values']);
-                        $errors[] = "Invalid value in column '{$column_name}': expected one of ['{$allowed}'], found '{$value}'.";
-                    }
+            // Unique
+            if ($value_exists && isset($validation_rules['unique'])) {
+                $error = $this->validateUnique($value, $column_name, $rowIndex);
+                if ($error) $errors[] = $error;
+            }
+
+            // Allowed values validation
+            if (isset($column['allowed_values']) && is_array($column['allowed_values'])) {
+                if (!in_array($value, $column['allowed_values'], true)) {
+                    $allowed = implode("', '", $column['allowed_values']);
+                    $errors[] = "Invalid value in column '{$column_name}': expected one of ['{$allowed}'], found '{$value}'.";
                 }
             }
 
-            // perform additional manipulation to the column values such as strtoupper, strip_tags, htmlentities etc. if set. in $column['change']
-            if (isset($assoc_row[$column_name]) && is_string($assoc_row[$column_name])) {
-                foreach ($optional_validations as $validation) {
-                    switch ($validation) {
-                        case 'lowercase':
-                            $assoc_row[$column_name] = strtoupper($assoc_row[$column_name]);
-                            break;
-                        case 'uppercase':
-                            $assoc_row[$column_name] = strtoupper($assoc_row[$column_name]);
-                            break;
-                        case 'strip_tags':
-                            $assoc_row[$column_name] = strip_tags($assoc_row[$column_name]);
-                            break;
-                        case 'htmlentities':
-                            $assoc_row[$column_name] = htmlentities($assoc_row[$column_name]);
-                            break;
-                        case 'strip_quotes':
-                            $entry = str_replace('"', "", $assoc_row[$column_name]);
-		                    $entry = str_replace("'", "", $assoc_row[$column_name]);
-                            $assoc_row[$column_name] = $entry;
-                            break;
-                        case 'urlencode':
-                            $assoc_row[$column_name] = urlencode($assoc_row[$column_name]);
-                            break;
-                    }
-                }
+            // Perform additional string manipulation to the column values such as strtoupper, strip_tags, htmlentities etc.
+            // lowercase
+            if ($value_exists && isset($validation_rules['lowercase'])) {
+                $assoc_row[$column_name] = strtolower($assoc_row[$column_name]);
+            }
+
+            // uppercase
+            if ($value_exists && isset($validation_rules['uppercase'])) {
+                $assoc_row[$column_name] = strtoupper($assoc_row[$column_name]);
+            }
+
+            // strip_tags
+            if ($value_exists && isset($validation_rules['strip_tags'])) {
+                $assoc_row[$column_name] = strip_tags($assoc_row[$column_name]);
+            }
+
+            // htmlentities
+            if ($value_exists && isset($validation_rules['htmlentities'])) {
+                $assoc_row[$column_name] = htmlentities($assoc_row[$column_name]);
+            }
+
+            // strip_quotes
+            if ($value_exists && isset($validation_rules['strip_quotes'])) {
+                $entry = str_replace('"', "", $assoc_row[$column_name]);
+		        $entry = str_replace("'", "", $assoc_row[$column_name]);
+                $assoc_row[$column_name] = $entry;
+            }
+
+            // urlencode
+            if ($value_exists && isset($validation_rules['urlencode'])) {
+                $assoc_row[$column_name] = urlencode($assoc_row[$column_name]);
             }
         }
 
         return empty($errors) ? ['status' => true] : ['status' => false, 'errors' => $errors]; // Return validation result
+    }
+
+    private function parseValidationRules(string $validate): array
+    {
+        $rules = [];
+        foreach (explode('|', $validate) as $rule) {
+            if (preg_match('/^(\w+)\[(.+)\]$/', $rule, $matches)) {
+                $rules[$matches[1]] = $matches[2];
+            } else {
+                $rules[$rule] = true;
+            }
+        }
+        return $rules;
+    }
+
+    private function validateRequired($value, $column_name): ?string
+    {
+        return ($value === null || $value === '') ? "Required column '{$column_name}' is empty." : null;
+    }
+
+    private function validateType($value, $expected_type, $column_name): ?string
+    {
+        // Use your existing type validation logic here
+        if (!$this->isTypeValid($value, $expected_type)) {
+            return "Invalid type for column '{$column_name}': expected {$expected_type}, got '{$value}'";
+        }
+        return null;
+    }
+
+    private function validateMinLength($value, $column_name, $min_length): ?string
+    {
+        return (strlen((string)$value) < $min_length)
+            ? "The value in column '{$column_name}' is too short: Expected minimum length of {$min_length}, got " . strlen((string)$value)
+            : null;
+    }
+
+    private function validateMaxLength($value, $column_name, $max_length): ?string
+    {
+        return (strlen((string)$value) > $max_length)
+            ? "The value in column '{$column_name}' is too long: Expected maximum length of {$max_length}, got " . strlen((string)$value)
+            : null;
+    }
+
+    private function validateUnique($value, $column_name, $rowIndex): ?string
+    {
+        if (!isset($this->unique_values[$column_name])) {
+            $this->unique_values[$column_name] = [];
+        }
+        if (isset($this->unique_values[$column_name][$value])) {
+            $first_row = $this->unique_values[$column_name][$value];
+            return "Duplicate found in column '{$column_name}': {$value} (same with row {$first_row})";
+        }
+        $this->unique_values[$column_name][$value] = $rowIndex;
+        return null;
     }
 
     /**
@@ -654,31 +718,31 @@ class CsvReader
      * @param int|null $current_row_number The current row number being processed.
      * @return array An array of error messages for duplicates found.
      */
-    private function checkForDuplicatesInUniqueColumns(mixed $value, array $column, ?int $current_row_number = null): array 
-    {
-        $errors = []; // Initialize errors array
+    // private function checkForDuplicatesInUniqueColumns(mixed $value, array $column, ?int $current_row_number = null): array 
+    // {
+    //     $errors = []; // Initialize errors array
 
-        // Check if the column has the 'unique' key set to true
-        if (isset($column['unique']) && $column['unique'] === true) {
-            $unique_column_name = $column['column_name']; // Get the unique column name
+    //     // Check if the column has the 'unique' key set to true
+    //     if (isset($column['unique']) && $column['unique'] === true) {
+    //         $unique_column_name = $column['column_name']; // Get the unique column name
 
-            // Initialize if not set
-            if (!isset($this->unique_values[$unique_column_name])) {
-                $this->unique_values[$unique_column_name] = []; // Initialize unique values array
-            }
+    //         // Initialize if not set
+    //         if (!isset($this->unique_values[$unique_column_name])) {
+    //             $this->unique_values[$unique_column_name] = []; // Initialize unique values array
+    //         }
 
-            // Check if the value is already tracked
-            if (isset($this->unique_values[$unique_column_name][$value])) {
-                $first_row = $this->unique_values[$unique_column_name][$value]; // Get the first row where the value was found
-                $errors[] = "Duplicate found in column '{$unique_column_name}': {$value} (same with row {$first_row})"; // Log duplicate error
-            } else {
-                // If no duplicate, track this value and its current row number
-                $this->unique_values[$unique_column_name][$value] = $current_row_number; // Track the current row number
-            }
-        }
+    //         // Check if the value is already tracked
+    //         if (isset($this->unique_values[$unique_column_name][$value])) {
+    //             $first_row = $this->unique_values[$unique_column_name][$value]; // Get the first row where the value was found
+    //             $errors[] = "Duplicate found in column '{$unique_column_name}': {$value} (same with row {$first_row})"; // Log duplicate error
+    //         } else {
+    //             // If no duplicate, track this value and its current row number
+    //             $this->unique_values[$unique_column_name][$value] = $current_row_number; // Track the current row number
+    //         }
+    //     }
 
-        return $errors; // Return any duplicate errors found
-    }
+    //     return $errors; // Return any duplicate errors found
+    // }
 
     /**
      * Validate the length of a value against minimum and maximum constraints.
@@ -689,23 +753,23 @@ class CsvReader
      * @param int|null $max_length The maximum length constraint.
      * @return array An array of error messages for length validation.
      */
-    private function validateLength(mixed $value, string $column_name, ?int $min_length = null, ?int $max_length = null) {
-        $errors = []; // Initialize errors array
+    // private function validateLength(mixed $value, string $column_name, ?int $min_length = null, ?int $max_length = null) {
+    //     $errors = []; // Initialize errors array
 
-        if (!is_null($value) && $value !== '') {
-            $length = strlen((string)$value); // Get the length of the value
+    //     if (!is_null($value) && $value !== '') {
+    //         $length = strlen((string)$value); // Get the length of the value
 
-            if (!is_null($min_length) && $length < $min_length) {
-                $errors[] = "The value in column '{$column_name}' is too short: Expected minimum length of {$min_length}, got {$length}"; // Log error for short value
-            }
+    //         if (!is_null($min_length) && $length < $min_length) {
+    //             $errors[] = "The value in column '{$column_name}' is too short: Expected minimum length of {$min_length}, got {$length}"; // Log error for short value
+    //         }
 
-            if (!is_null($max_length) && $length > $max_length) {
-                $errors[] = "The value in column '{$column_name}' is too long: Expected maximum length of {$max_length}, got {$length}"; // Log error for long value
-            }
-        }
+    //         if (!is_null($max_length) && $length > $max_length) {
+    //             $errors[] = "The value in column '{$column_name}' is too long: Expected maximum length of {$max_length}, got {$length}"; // Log error for long value
+    //         }
+    //     }
 
-        return $errors; // Return any length validation errors found
-    }
+    //     return $errors; // Return any length validation errors found
+    // }
 
     /**
      * Store rows with errors into a CSV file.
@@ -750,7 +814,7 @@ class CsvReader
      * @param string $expectedType The expected type of the value.
      * @return bool True if the value matches the expected type, false otherwise.
      */
-    private function validateType(mixed $value, string $expectedType): bool
+    private function isTypeValid(mixed $value, string $expectedType): bool
     {
         switch ($expectedType) {
             case 'string':

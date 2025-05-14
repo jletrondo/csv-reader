@@ -54,9 +54,13 @@ To perform custom validation or processing on each row of your CSV, you can defi
 - `$row`: An associative array representing the current row's data.
 - `$index`: The row index (starting from 1).
 
-The callback must return either:
-- `true` if the row is valid and should be processed, or
-- an associative array with a `'status'` key set to `false` and a `'column_errors'` key containing an array of error messages if the row is invalid.
+The callback can return one of the following:
+
+- `true` — The row is valid and should be processed (no changes).
+- An associative array with:
+  - `'status' => false` and `'column_errors' => [...]` — The row is invalid, and the provided error messages will be reported.
+  - `'status' => true` and `'row' => $modifiedRow` — The row is valid, and you want to modify the row before further processing (e.g., change values, normalize data).
+  - `'status' => false` and `'skip' => true` — The row should be skipped entirely and not included in the processed results.
 
 **Important:** You must set the callback before calling `CsvReader::read()`. Use the following method to register your callback:
 
@@ -135,8 +139,6 @@ Each column definition in the `columns` parameter supports the following options
 - **min_length** (optional): The minimum allowed length for the value.
 - **max_length** (optional): The maximum allowed length for the value.
 - **validate** (optional): Pipe-separated validation rules. Supported rules: `required`, `lowercase`, `uppercase`, `strip_tags`. (More validations will be added soon.)
-- **unique** (optional): `true` or `false`. If `true`, the column will be checked for duplicate values.
-- **required** (optional): `true` or `false`. If `true`, the column must have a value.
 - **allowed_values** (optional): An array of allowed values for the column. If set, the value in the CSV must match one of the values in this array. Example: `'allowed_values' => ['active', 'inactive']`.
 
 
