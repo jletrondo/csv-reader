@@ -1,6 +1,11 @@
 # Changelog
 
-## [1.3.0] - 2025-06-13
+## [1.3.1] - 2025-05-14
+### Fixed
+- Fixed an issue where columns with type `date` would always return `false` during validation.
+- Fixed a bug where `rows_processed` was not set when `is_downloadable` was `true`, which caused certain tests to fail.
+
+## [1.3.0] - 2025-05-13
 ### Added
 - Added a new feature: users can now modify rows using the callback by returning an array with `'status' => true` and `'row' => $modifiedRow`.
 - Added the ability to skip processing of a row from within the callback by returning an array with `'status' => false` and `'skip' => true`.

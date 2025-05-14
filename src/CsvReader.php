@@ -514,7 +514,6 @@ class CsvReader
         if ($this->is_downloadable) {
             $this->storeErrorRows($this->results['rows_with_errors'], $header); // Store error rows in a CSV file
             $this->results['downloadable'] = $this->is_downloadable; // Set downloadable status
-            unset($this->results['rows_processed']);
         }
 
         return $this->results; // Return the results of the read operation
@@ -588,8 +587,10 @@ class CsvReader
                     } else {
                         $errors[] = "Invalid date format in column '{$column_name}'. Please use one of the following formats: m/d/Y, m-d-Y, Y/m/d, or Y-m-d.";
                     }
+                } else {
+                    $error = $this->validateType($value, $expected_type, $column_name);
                 }
-                $error = $this->validateType($value, $expected_type, $column_name);
+                
                 if ($error) $errors[] = $error;
             }
 
