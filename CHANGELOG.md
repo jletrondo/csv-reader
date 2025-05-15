@@ -1,14 +1,32 @@
 # Changelog
 
+## [1.4.0] - 2025-05-16
+### Added
+- Validation in `CsvReader::read()` to detect and flag rows with an incorrect number of columns (extra or missing columns compared to the header). Such rows are now reported as errors and skipped from further processing. 
+
+### Fixed
+- Added validation to ensure all columns defined in the configuration are present in the CSV header. If any required columns are missing, an error is now reported and processing is halted.
+
+### Changed
+- Made the following class properties static to ensure consistent configuration across all instances:
+  - `$error_threshold`
+  - `$is_downloadable`
+  - `$directory_path`
+  - `$file_name`
+- Renamed the `set_callback` method to `setCallback` to adhere to the project's camelCase naming convention for functions. (A breaking change)
+- Refactored `CsvReader::read()` by removing the redundant second parameter `$callback`. Callback functionality should now be set exclusively via the `setCallback()` method prior to reading.
+
 ## [1.3.2] - 2025-05-15
 ### Fixed
 - Improved date validation: columns with `type: date` now only accept the following formats: `m/d/Y`, `m-d-Y`, `Y-m-d`, and `Y/m/d`. Invalid date formats are now correctly detected and reported.  
   _(See: `CsvReader.php`, `ValidationTest.php`)_
 
 ### Added
-- Added support for headers containing parenthesis, such as labels or format hints (e.g., `birthday(M/D/Y)`). Headers with parenthesis are now correctly recognized and mapped to their respective columns.  
+- Added support for headers containing parenthesis, such as labels or format hints (e.g., `birthday(M/D/Y)`). Headers with parenthesis are now correctly recognized and mapped to their respective columns.
   _(See: `CsvReader.php`, `ValidationTest.php`)_
 - Added strict date validation helper function which uses regex.
+
+
 
 ## [1.3.1] - 2025-05-14
 ### Fixed

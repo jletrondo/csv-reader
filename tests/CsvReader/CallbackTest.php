@@ -27,7 +27,7 @@ test('callback can reject a row', function () {
             }
         }
     };
-    $reader->set_callback('rejectJane', $callback);
+    $reader->setCallback('rejectJane', $callback);
     $result = $reader->read($file);
 
     expect($result['status'])->toBeTrue();
@@ -52,7 +52,7 @@ test('callback can modify a row', function () {
             return ['status' => true, 'row' => $row];
         }
     };
-    $reader->set_callback('uppercaseName', $callback);
+    $reader->setCallback('uppercaseName', $callback);
     $result = $reader->read($file);
     expect($result['status'])->toBeTrue();
     expect($result['rows_processed'][0]['name'])->toBe('JOHN');
@@ -79,7 +79,7 @@ test('callback can skip a row by returning skip', function () {
             return ['status' => true];
         }
     };
-    $reader->set_callback('skipRow', $callback);
+    $reader->setCallback('skipRow', $callback);
     $result = $reader->read($file);
 
     expect($result['status'])->toBeTrue();

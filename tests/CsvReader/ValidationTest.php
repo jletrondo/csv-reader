@@ -525,7 +525,7 @@ test('fails if date format is not m/d/Y or Y/m/d ', function () {
     ];
 
     $reader = new CsvReader(['columns' => $columns]);
-    $result = $reader->read($file);
+    $result = $reader->read($file); 
     expect($result['status'])->toBeTrue();
     expect($result['errors'][0]['message'])->toContain("Invalid date format in column 'birthdate'");
     expect($result['errors'][1]['message'])->toContain("Invalid date format in column 'birthdate'");
@@ -535,6 +535,87 @@ test('fails if date format is not m/d/Y or Y/m/d ', function () {
     expect($result['errors'][0]['row'])->toBe(2);
     expect($result['errors'][1]['row'])->toBe(4);
 
+    unlink($file);
+});
+
+test('fails if csv has extra columns', function () {
+    $csv = <<<CSV
+        name,birthdate
+        John,02/33/2000,extra_data
+        Jane,2001-01-31
+        Dave,07/26/1995
+        CSV;
+    $file = tempnam(sys_get_temp_dir(), 'csv_');
+    file_put_contents($file, $csv);
+
+    $columns = [
+        [
+            'column_name' => 'name',
+            'name' => 'name',
+            'type' => 'string',
+            'validate' => 'required',
+        ],
+        [
+            'column_name' => 'birthdate',
+            'name' => 'birthdate',
+            'type' => 'date',
+            'validate' => 'required',
+        ],
+    ];
+
+    $reader = new CsvReader(['columns' => $columns]);
+    $result = $reader->read($file);
+
+    // The first row (John) has an extra column, so it should be flagged as an error
+    expect($result['status'])->toBeTrue();
+    expect($result['errors'])->not->toBeEmpty();
+    expect($result['errors'][0]['row'])->toBe(2);
+    expect($result['errors'][0]['message'])->toContain('column count');
+    expect($result['total_error_rows'])->toBeGreaterThanOrEqual(1);
+
+    // Only Jane and Dave should be processed successfully
+    expect($result['rows_processed'])->toHaveCount(2);
+    expect($result['rows_processed'][0]['name'])->toBe('Jane');
+    expect($result['rows_processed'][1]['name'])->toBe('Dave');
+
+    unlink($file);
+});
+
+test('fails if csv has defined but missing columns', function () {
+    $csv = <<<CSV
+        name,birthdate
+        John,02/33/2000
+        Jane,2001-01-31
+        Dave,07/26/1995
+        CSV;
+    $file = tempnam(sys_get_temp_dir(), 'csv_');
+    file_put_contents($file, $csv);
+
+    $columns = [
+        [
+            'column_name' => 'name',
+            'name' => 'name',
+            'type' => 'string',
+            'validate' => 'required',
+        ],
+        [
+            'column_name' => 'birthdate',
+            'name' => 'birthdate',
+            'type' => 'date',
+            'validate' => 'required',
+        ],
+        [
+            'column_name' => 'address',
+            'name' => 'address',
+        ]
+    ];
+
+    $reader = new CsvReader(['columns' => $columns]);
+    $result = $reader->read($file);
+    expect($result['status'])->toBeFalse();
+    expect($result['error'])->toContain('The uploaded file is missing the following columns');
+    expect($result['total_error_rows'])->toBe(0);
+    expect($result['error_count'])->toBe(0);
     unlink($file);
 });
 

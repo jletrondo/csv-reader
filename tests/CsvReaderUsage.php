@@ -105,7 +105,7 @@ class CsvProcessor
                     echo "Rows processed: $processed\n";
                 }
             });
-            $this->reader->set_callback('custom_validation', $this);
+            $this->reader->setCallback('custom_validation', $this);
             $result = $this->reader->read(__DIR__ . '/actual_data.csv');
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();

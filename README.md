@@ -44,7 +44,7 @@ $csvReader = new CsvReader($params);
 To read a CSV file, use the `read` method. You can also provide a callback function to process each row.
 
 ```php
-$results = $csvReader->read('path/to/your/file.csv', $callback);
+$results = $csvReader->read('path/to/your/file.csv');
 ```
 
 ### Callback Function
@@ -66,7 +66,7 @@ The callback can return one of the following:
 
 #### Using the Callback for custom validations
 ```php
-$this->reader->set_callback(string $method, object $context);
+$this->reader->setCallback(string $method, object $context);
 ```
 
 - Here, `$method` refers to the name of the function that will be invoked on the `$context` object for each row during CSV processing.
@@ -112,7 +112,7 @@ The `CsvReader` class now supports a **progress callback** feature, allowing you
         }
     });
     // Optionally set other callbacks or options...
-    // $reader->set_callback('custom_validation', $yourObject);
+    // $reader->setCallback('custom_validation', $yourObject);
     $result = $reader->read('path/to/your.csv');
 ```
 
@@ -200,7 +200,7 @@ class CsvProcessor
     public function process()
     {
         try {
-            $this->reader->set_callback('custom_validation', $this);
+            $this->reader->setCallback('custom_validation', $this);
             $result = $this->reader->read(__DIR__ . '/file.csv');
             print_r($result);
         } catch (Exception $e) {

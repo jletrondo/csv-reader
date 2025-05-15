@@ -88,7 +88,7 @@ class CsvReader
      * The maximum number of errors allowed before the CSV reader stops processing further rows.
      * Default is 1000.
      */
-    private $error_threshold = 1000;
+    private static $error_threshold = 1000;
 
     /**
      * @var array $results
@@ -119,7 +119,7 @@ class CsvReader
      *
      * @var bool
      */
-    private $is_downloadable = false;
+    private static $is_downloadable = false;
 
     /**
      * The directory path where the error CSV file (containing invalid rows)
@@ -127,14 +127,14 @@ class CsvReader
      *
      * @var string
      */
-    private $directory_path = 'tests/errors/';
+    private static $directory_path = 'tests/errors/';
 
     /**
      * The filename to use for the generated CSV file containing rows with errors.
      *
      * @var string
      */
-    private $file_name = "rows_with_errors.csv";
+    private static $file_name = "rows_with_errors.csv";
     
 
     /**
@@ -193,37 +193,37 @@ class CsvReader
 
     public function setDirectoryPath(string $directory_path): void
     {
-        $this->directory_path = rtrim($directory_path, '/') . '/'; // Ensure the path ends with a slash
+        self::$directory_path = rtrim($directory_path, '/') . '/'; // Ensure the path ends with a slash
     }
 
     public function getDirectoryPath(): string
     {
-        return $this->directory_path; // Get the directory path for error files
+        return self::$directory_path; // Get the directory path for error files
     }
 
     public function setFileName(string $file_name): void
     {
-        $this->file_name = $file_name; // Set the name of the error file
+        self::$file_name = $file_name; // Set the name of the error file
     }
 
     public function getErrorFileName(): string
     {
-        return $this->file_name; // Get the name of the error file
+        return self::$file_name; // Get the name of the error file
     }
 
     public function setErrorCountThreshold(int $error_threshold): void 
     {
-        $this->error_threshold = $error_threshold;
+        self::$error_threshold = $error_threshold;
     }
 
     public function setIsDownloadable(bool $is_downloadable): void
     {
-        $this->is_downloadable = $is_downloadable;
+        self::$is_downloadable = $is_downloadable;
     }
 
     public function getIsDownloadable(): bool
     {
-        return $this->is_downloadable;
+        return self::$is_downloadable;
     }
 
     /**
@@ -285,7 +285,7 @@ class CsvReader
      * @param object $context The context (object) in which the callback method exists.
      * @throws Exception If the callback method does not exist in the provided context.
      */
-    public function set_callback(string $method, object $context): void
+    public function setCallback(string $method, object $context): void
     {
         if (method_exists($context, $method)) {
             $this->callback = $method; // Assign the callback method
@@ -378,7 +378,7 @@ class CsvReader
             $rowIndex++; // Increment row index
 
             // Exit if too may errors
-            if($errorCount > $this->error_threshold) {
+            if($errorCount > self::$error_threshold) {
                 $this->results['status'] = true;
                 $this->results['error_count'] = $errorCount;
                 $this->results['error'] = "The uploaded file has too many errors. Please take time to review and try again.";
@@ -433,7 +433,18 @@ class CsvReader
                 continue; // Skip processing this header row
             }
 
-            // --- NEW: Call progress callback every 100 rows (or as you wish) ---
+            if ($this->has_header && count($row) !== count($header)) {
+                $errorCount++;
+                $totalErrorRows++;
+                $this->results['errors'][] = [
+                    'message' => "Row has incorrect column count (expected " . count($header) . ", got " . count($row) . ").",
+                    'row' => $rowIndex
+                ];
+                $this->results['rows_with_errors'][] = $row;
+                continue; // Skip further processing for this row
+            }
+
+            // Call progress callback every 100 rows (or as you wish) ---
             if ($this->progress_callback && $rowIndex % $this->progress_callback_interval === 0) {
                 call_user_func($this->progress_callback, $rowIndex, $totalRows);
             }
@@ -504,7 +515,7 @@ class CsvReader
             $this->results['processed']++; // Increment processed row count
         }
 
-        // --- NEW: Final progress callback at end (if not already called) ---
+        // Final progress callback at end (if not already called) ---
         if ($this->progress_callback) {
             call_user_func($this->progress_callback, $rowIndex, $totalRows);
         }
@@ -514,9 +525,9 @@ class CsvReader
         $this->results['total_error_rows'] = $totalErrorRows; // Count total error rows
         $this->results['error_count'] = count($this->results['errors']); // The sum of all errors in all columns
 
-        if ($this->is_downloadable) {
+        if (self::$is_downloadable) {
             $this->storeErrorRows($this->results['rows_with_errors'], $header); // Store error rows in a CSV file
-            $this->results['downloadable'] = $this->is_downloadable; // Set downloadable status
+            $this->results['downloadable'] = self::$is_downloadable; // Set downloadable status
         }
 
         return $this->results; // Return the results of the read operation
@@ -789,11 +800,11 @@ class CsvReader
     public function storeErrorRows(array $error_rows, array $header): array
     {
         // Create the directory if it does not exist
-        if (!is_dir($this->directory_path)) {
-            mkdir($this->directory_path, 0755, true); // Create directory with appropriate permissions
+        if (!is_dir(self::$directory_path)) {
+            mkdir(self::$directory_path, 0755, true); // Create directory with appropriate permissions
         }
 
-        $outputPath = $this->directory_path . $this->file_name; // Define the path to store the CSV file
+        $outputPath = self::$directory_path . self::$file_name; // Define the path to store the CSV file
         $output = fopen($outputPath, 'w'); // Open the output file for writing
 
         // Add the original headers from the uploaded CSV with UTF-8 BOM for Excel compatibility
