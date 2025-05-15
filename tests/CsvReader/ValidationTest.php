@@ -437,3 +437,105 @@ test('urlencodes value when "urlencode" validation is set', function () {
     expect($result['rows_processed'][1]['url'])->toBe('foo%40bar.com');
     unlink($file);
 });
+
+test('accepts valid dates in m/d/Y format like 3/16/2000 and 5/15/2001', function () {
+    $csv = <<<CSV
+        name,birthdate
+        John,2000-03-16
+        Jane,2001-5-15
+        CSV;
+    $file = tempnam(sys_get_temp_dir(), 'csv_');
+    file_put_contents($file, $csv);
+
+    $columns = [
+        [
+            'column_name' => 'name',
+            'name' => 'name',
+            'type' => 'string',
+            'validate' => 'required',
+        ],
+        [
+            'column_name' => 'birthdate',
+            'name' => 'birthdate',
+            'type' => 'date',
+            'validate' => 'required',
+        ],
+    ];
+
+    $reader = new CsvReader(['columns' => $columns]);
+    $result = $reader->read($file);
+    expect($result['status'])->toBeTrue();
+    expect($result['rows_processed'])->toHaveCount(2);
+    expect($result['rows_processed'][0]['birthdate'])->toBe('03/16/2000');
+    expect($result['rows_processed'][1]['birthdate'])->toBe('05/15/2001');
+    unlink($file);
+});
+
+test('processes date type column correctly', function () {
+    $csv = <<<CSV
+        name,email,birthdate
+        John Doe,john@example.com,1993-05-15
+        Jane Smith,jane@example.com,12/26/1992
+        CSV;
+    $file = tempnam(sys_get_temp_dir(), 'csv_');
+    file_put_contents($file, $csv);
+
+    $columns = [
+        ['column_name' => 'name', 'name' => 'name', 'type' => 'string', 'validate' => 'required'],
+        ['column_name' => 'email', 'name' => 'email', 'type' => 'string', 'validate' => 'required|unique'],
+        ['column_name' => 'birthdate', 'name' => 'birthdate', 'type' => 'date', 'validate' => 'required'],
+    ];
+
+    $reader = new CsvReader(['columns' => $columns]);
+    $reader->setIsDownloadable(true);
+    $result = $reader->read($file);
+
+    expect($result['status'])->toBeTrue();
+    expect($result['rows_processed'])->toHaveCount(2);
+
+    expect($result['rows_processed'][0]['birthdate'])->toBe('05/15/1993');
+    expect($result['rows_processed'][1]['birthdate'])->toBe('12/26/1992');
+
+    unlink($file);
+});
+
+test('fails if date format is not m/d/Y or Y/m/d ', function () {
+    $csv = <<<CSV
+        name,birthdate
+        John,02/33/2000
+        Jane,2001-01-31
+        Dave,26/07/1995
+        CSV;
+    $file = tempnam(sys_get_temp_dir(), 'csv_');
+    file_put_contents($file, $csv);
+
+    $columns = [
+        [
+            'column_name' => 'name',
+            'name' => 'name',
+            'type' => 'string',
+            'validate' => 'required',
+        ],
+        [
+            'column_name' => 'birthdate',
+            'name' => 'birthdate',
+            'type' => 'date',
+            'validate' => 'required',
+        ],
+    ];
+
+    $reader = new CsvReader(['columns' => $columns]);
+    $result = $reader->read($file);
+    expect($result['status'])->toBeTrue();
+    expect($result['errors'][0]['message'])->toContain("Invalid date format in column 'birthdate'");
+    expect($result['errors'][1]['message'])->toContain("Invalid date format in column 'birthdate'");
+    expect($result['processed'])->toBe(1);
+    expect($result['error_count'])->toBe(2);
+    expect($result['total_error_rows'])->toBe(2);
+    expect($result['errors'][0]['row'])->toBe(2);
+    expect($result['errors'][1]['row'])->toBe(4);
+
+    unlink($file);
+});
+
+

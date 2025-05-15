@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.3.2] - 2025-05-15
+### Fixed
+- Improved date validation: columns with `type: date` now only accept the following formats: `m/d/Y`, `m-d-Y`, `Y-m-d`, and `Y/m/d`. Invalid date formats are now correctly detected and reported.  
+  _(See: `CsvReader.php`, `ValidationTest.php`)_
+
+### Added
+- Added support for headers containing parenthesis, such as labels or format hints (e.g., `birthday(M/D/Y)`). Headers with parenthesis are now correctly recognized and mapped to their respective columns.  
+  _(See: `CsvReader.php`, `ValidationTest.php`)_
+- Added strict date validation helper function which uses regex.
+
 ## [1.3.1] - 2025-05-14
 ### Fixed
 - Fixed an issue where columns with type `date` would always return `false` during validation.

@@ -61,3 +61,36 @@ test('fails when CSV contains extra headers not defined in columns', function ()
     expect($result['error'])->toContain('contains columns that are not defined');
     unlink($file);
 });
+
+test('should still accept headers with parenthesis eg. birthday(M/D/Y)', function () {
+    $csv = <<<CSV
+        name,birthday(M/D/Y)
+        John,3/16/2000
+        Jane,5/15/2001
+        CSV;
+    $file = tempnam(sys_get_temp_dir(), 'csv_');
+    file_put_contents($file, $csv);
+
+    $columns = [
+        [
+            'column_name' => 'name',
+            'name' => 'name',
+            'type' => 'string',
+            'validate' => 'required',
+        ],
+        [
+            'column_name' => 'birthday',
+            'name' => 'birthday',
+            'type' => 'date',
+            'validate' => 'required',
+        ],
+    ];
+
+    $reader = new CsvReader(['columns' => $columns]);
+    $result = $reader->read($file);
+    expect($result['status'])->toBeTrue();
+    expect($result['rows_processed'])->toHaveCount(2);
+    expect($result['rows_processed'][0]['birthday'])->toBe('03/16/2000');
+    expect($result['rows_processed'][1]['birthday'])->toBe('05/15/2001');
+    unlink($file);
+});

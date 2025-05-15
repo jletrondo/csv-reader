@@ -88,33 +88,3 @@ test('callback can skip a row by returning skip', function () {
     expect(count($result['rows_processed']))->toBe(2);
     unlink($file);
 });
-
-test('processes date type column correctly', function () {
-    $csv = <<<CSV
-        name,email,birthdate
-        John Doe,john@example.com,1993-05-15
-        Jane Smith,jane@example.com,12/26/1992
-        CSV;
-    $file = tempnam(sys_get_temp_dir(), 'csv_');
-    file_put_contents($file, $csv);
-
-    $columns = [
-        ['column_name' => 'name', 'name' => 'name', 'type' => 'string', 'validate' => 'required'],
-        ['column_name' => 'email', 'name' => 'email', 'type' => 'string', 'validate' => 'required|unique'],
-        ['column_name' => 'birthdate', 'name' => 'birthdate', 'type' => 'date', 'validate' => 'required'],
-    ];
-
-    $reader = new CsvReader(['columns' => $columns]);
-    $reader->setIsDownloadable(true);
-    $result = $reader->read($file);
-
-    print_r($result);
-
-    expect($result['status'])->toBeTrue();
-    expect($result['rows_processed'])->toHaveCount(2);
-
-    expect($result['rows_processed'][0]['birthdate'])->toBe('05/15/1993');
-    expect($result['rows_processed'][1]['birthdate'])->toBe('12/26/1992');
-
-    unlink($file);
-});

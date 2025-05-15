@@ -389,7 +389,10 @@ class CsvReader
             if ($rowIndex === 1 && $this->has_header) {
                 // Remove BOM and trim headers, then filter out empty values
                 $header = array_filter(array_map(function($value) {
-                    return trim($this->removeBom($value));
+                    // Remove BOM, trim, and strip anything in parentheses (and the parentheses)
+                    $cleaned = trim($this->removeBom($value));
+                    $cleaned = preg_replace('/\s*\(.*?\)\s*/', '', $cleaned);
+                    return $cleaned;
                 }, $row), function($v) { return $v !== ''; });
 
                 // Get the expected column names and filter out empty values
@@ -569,6 +572,39 @@ class CsvReader
                 $errors[] = "$encoding_error_msg '{$column_name}'.";
             }
 
+            // String manipulations
+            // lowercase
+            if ($value_exists && isset($validation_rules['lowercase'])) {
+                $assoc_row[$column_name] = strtolower($assoc_row[$column_name]);
+            }
+
+            // uppercase
+            if ($value_exists && isset($validation_rules['uppercase'])) {
+                $assoc_row[$column_name] = strtoupper($assoc_row[$column_name]);
+            }
+
+            // strip_tags
+            if ($value_exists && isset($validation_rules['strip_tags'])) {
+                $assoc_row[$column_name] = strip_tags($assoc_row[$column_name]);
+            }
+
+            // htmlentities
+            if ($value_exists && isset($validation_rules['htmlentities'])) {
+                $assoc_row[$column_name] = htmlentities($assoc_row[$column_name]);
+            }
+
+            // strip_quotes
+            if ($value_exists && isset($validation_rules['strip_quotes'])) {
+                $entry = str_replace('"', "", $assoc_row[$column_name]);
+		        $entry = str_replace("'", "", $assoc_row[$column_name]);
+                $assoc_row[$column_name] = $entry;
+            }
+
+            // urlencode
+            if ($value_exists && isset($validation_rules['urlencode'])) {
+                $assoc_row[$column_name] = urlencode($assoc_row[$column_name]);
+            }
+
             // Required
             if (isset($validation_rules['required'])) {
                 $error = $this->validateRequired($value, $column_name);
@@ -581,7 +617,7 @@ class CsvReader
             // Type
             if ($value_exists && $expected_type) {
                 if ($expected_type === 'date') {
-                    if(validate_date($value)) {
+                    if(validate_date_strict($value)) {
                         $value = date('m/d/Y', strtotime($value));
                         $assoc_row[$column_name] = $value;
                     } else {
@@ -618,39 +654,6 @@ class CsvReader
                     $allowed = implode("', '", $column['allowed_values']);
                     $errors[] = "Invalid value in column '{$column_name}': expected one of ['{$allowed}'], found '{$value}'.";
                 }
-            }
-
-            // Perform additional string manipulation to the column values such as strtoupper, strip_tags, htmlentities etc.
-            // lowercase
-            if ($value_exists && isset($validation_rules['lowercase'])) {
-                $assoc_row[$column_name] = strtolower($assoc_row[$column_name]);
-            }
-
-            // uppercase
-            if ($value_exists && isset($validation_rules['uppercase'])) {
-                $assoc_row[$column_name] = strtoupper($assoc_row[$column_name]);
-            }
-
-            // strip_tags
-            if ($value_exists && isset($validation_rules['strip_tags'])) {
-                $assoc_row[$column_name] = strip_tags($assoc_row[$column_name]);
-            }
-
-            // htmlentities
-            if ($value_exists && isset($validation_rules['htmlentities'])) {
-                $assoc_row[$column_name] = htmlentities($assoc_row[$column_name]);
-            }
-
-            // strip_quotes
-            if ($value_exists && isset($validation_rules['strip_quotes'])) {
-                $entry = str_replace('"', "", $assoc_row[$column_name]);
-		        $entry = str_replace("'", "", $assoc_row[$column_name]);
-                $assoc_row[$column_name] = $entry;
-            }
-
-            // urlencode
-            if ($value_exists && isset($validation_rules['urlencode'])) {
-                $assoc_row[$column_name] = urlencode($assoc_row[$column_name]);
             }
         }
 
