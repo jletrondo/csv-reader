@@ -57,7 +57,7 @@ test('stores error rows in custom directory path', function () {
     expect($errorRows[1][0])->toBe('John');
     expect($errorRows[1][1])->toBe('02/33/2000');
     expect($errorRows[2][0])->toBe('Dave');
-
+    expect($result['csv_file_input_type'])->toBe('file_path');
     // Clean up
     unlink($file);
     unlink($customErrorDir . $errorCsvPath);
@@ -94,6 +94,7 @@ test('handles uploaded file from $_FILES', function () {
     expect($result['rows_processed'][0]['email'])->toBe('john@example.com');
     expect($result['rows_processed'][1]['name'])->toBe('Jane Smith');
     expect($result['rows_processed'][1]['email'])->toBe('jane@example.com');
+    expect($result['csv_file_input_type'])->toBe('uploaded');
     
     // Clean up
     unlink($tempFile);
@@ -116,7 +117,7 @@ test('handles reading from a file stream', function () {
     
     $reader = new CsvReader(['columns' => $this->columns]);
     $result = $reader->read($stream);
-    
+
     // Verify the results
     expect($result['status'])->toBeTrue();
     expect($result['rows_processed'])->toHaveCount(2);
@@ -124,6 +125,7 @@ test('handles reading from a file stream', function () {
     expect($result['rows_processed'][0]['email'])->toBe('john@example.com');
     expect($result['rows_processed'][1]['name'])->toBe('Jane Smith');
     expect($result['rows_processed'][1]['email'])->toBe('jane@example.com');
+    expect($result['csv_file_input_type'])->toBe('stream');
     
     // Clean up
     unlink($tempFile);

@@ -113,6 +113,10 @@ class CsvReader
         'error_count' => 0
     ];
 
+    private $isStream = false;
+    private $isUploaded = false;
+    private $isRegularFile = false;
+
     /**
      * Indicates whether the library should generate a downloadable CSV file
      * containing rows that failed validation or processing.
@@ -312,26 +316,25 @@ class CsvReader
         $errorCount = 0; 
         $totalErrorRows = 0; // Total count of error rows
         $handle = null;
-        $isRegular = false;
+        $totalRows = 0; /// for progress callback
 
         // Handle different input types
         if ($this->isFileStream($input)) {
             $handle = $input;
+            $this->isStream = true;
             // For streams, we can't easily count total rows
             $totalRows = null;
         } else if ($this->isFileUploaded($input)) {
             $input = $input['tmp_name'];
+            $this->isUploaded = true;
             $handle = fopen($input, 'r');
             // Count total rows for uploaded files
-            $totalRows = 0;
-            $fh = fopen($input, 'r');
-            while (fgets($fh) !== false) {
+            while (fgets($handle) !== false) {
                 $totalRows++;
             }
-            fclose($fh);
         } else {
             // Regular file path
-            $isRegular = true;
+            $this->isRegularFile = true;
             if (!file_exists($input)) {
                 $this->results['error'] = 'File does not exist: ' . $input;
                 return $this->results;
@@ -352,7 +355,6 @@ class CsvReader
             }
 
             // Count total rows for regular files
-            $totalRows = 0;
             while (fgets($handle) !== false) {
                 $totalRows++;
             }
@@ -559,7 +561,13 @@ class CsvReader
         $this->results['status'] = true; // Set status to true
         $this->results['total_error_rows'] = $totalErrorRows; // Count total error rows
         $this->results['error_count'] = count($this->results['errors']); // The sum of all errors in all columns
-        $this->results['isRegular'] = $isRegular;
+        $this->results['csv_file_input_type'] = match(true) {
+            $this->isStream => 'stream',
+            $this->isUploaded => 'uploaded',
+            $this->isRegularFile => 'file_path',
+            default => 'Unknown'
+        };
+
         if (self::$is_downloadable) {
             $this->storeErrorRows($this->results['rows_with_errors'], $header); // Store error rows in a CSV file
             $this->results['downloadable'] = self::$is_downloadable; // Set downloadable status

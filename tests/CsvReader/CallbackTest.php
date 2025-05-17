@@ -86,5 +86,6 @@ test('callback can skip a row by returning skip', function () {
     $names = array_column($result['rows_processed'], 'name');
     expect($names)->not->toContain('SkipMe');
     expect(count($result['rows_processed']))->toBe(2);
+    expect($result['csv_file_input_type'])->toBe('file_path');
     unlink($file);
 });

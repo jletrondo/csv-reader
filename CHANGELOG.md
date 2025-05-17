@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.5.1] - 2025-05-18
+### Added
+- Added `csv_file_input_type` property to the results array to indicate the type of input file being processed. This property can have one of the following values:
+  - `stream`: When the input is a PHP stream resource
+  - `uploaded`: When the input is an uploaded file from $_FILES
+  - `file_path`: When the input is a regular file path (e.g., `/path/to/data.csv`)
+  - `Unknown`: When the input type cannot be determined
+
+### Fixed
+- Fixed an error caused by a redundant check in isFileUploaded method.
+- Fixed a bug where reading regular csv file causes a PHP error.
+
 ## [1.5.0] - 2025-05-17
 ### Added
 - Added support for file streams and uploaded files in `CsvReader::read()`. The method now accepts both file paths and file streams as input.
