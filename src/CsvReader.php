@@ -298,45 +298,65 @@ class CsvReader
     /**
      * Read a CSV file directly from its path.
      *
-     * @param string $file_path Path to the CSV file.
+     * @param string $input Path to the CSV file.
      * @param callable|null $callback Optional callback function to process each row.
      *                                The function should accept two parameters: the row data and the row index.
      *                                It should return a boolean indicating whether to process the row.
      * @return array An associative array containing the status of the read operation, 
      *               number of processed rows, and any errors encountered.
      */
-    public function read(string $file_path, ?callable $callback = null): array
+    public function read($input): array
     {
         $rowIndex = 0; // Initialize row index
         $header = []; // Initialize header array
         $errorCount = 0; 
         $totalErrorRows = 0; // Total count of error rows
+        $handle = null;
+        $isRegular = false;
 
-        // --- NEW: Estimate total rows for progress reporting ---
-        $totalRows = null;
-        if (file_exists($file_path)) {
+        // Handle different input types
+        if ($this->isFileStream($input)) {
+            $handle = $input;
+            // For streams, we can't easily count total rows
+            $totalRows = null;
+        } else if ($this->isFileUploaded($input)) {
+            $input = $input['tmp_name'];
+            $handle = fopen($input, 'r');
+            // Count total rows for uploaded files
             $totalRows = 0;
-            $fh = fopen($file_path, 'r');
+            $fh = fopen($input, 'r');
             while (fgets($fh) !== false) {
                 $totalRows++;
             }
             fclose($fh);
-        }
+        } else {
+            // Regular file path
+            $isRegular = true;
+            if (!file_exists($input)) {
+                $this->results['error'] = 'File does not exist: ' . $input;
+                return $this->results;
+            }
 
-        if (!file_exists($file_path)) {
-            $this->results['error'] = 'File does not exist: ' . $file_path;
-            return $this->results; // Return error if file does not exist
-        }
+            // Only check for valid CSV file if it's a regular file path
+            if (!$this->isFileStream($input) && !$this->isFileUploaded($input)) {
+                if(!$this->isValidCsvFile($input)) {
+                    $this->results['error'] = 'Uploaded file is not a CSV. Please upload a valid CSV file.';
+                    return $this->results;
+                }
+            }
 
-        if(!$this->isValidCsvFile($file_path)) {
-            $this->results['error'] = 'Uploaded file is not a CSV. Please upload a valid CSV file.';
-            return $this->results;
-        }
+            $handle = fopen($input, 'r');
+            if ($handle === false) {
+                $this->results['error'] = 'Failed to open file.';
+                return $this->results;
+            }
 
-        $handle = fopen($file_path, 'r'); // Open the CSV file for reading
-        if ($handle === false) {
-            $this->results['error'] = 'Failed to open file.'; // Return error if file cannot be opened
-            return $this->results;
+            // Count total rows for regular files
+            $totalRows = 0;
+            while (fgets($handle) !== false) {
+                $totalRows++;
+            }
+            rewind($handle); // Reset file pointer to beginning
         }
 
         /* 
@@ -352,11 +372,26 @@ class CsvReader
             fseek($handle, 0); // Reset file pointer
         } else {
             // Assume it's a different encoding (e.g., ISO-8859-1) and convert to UTF-8
-            $content = file_get_contents($file_path);
-            $content = mb_convert_encoding($content, 'UTF-8', 'ISO-8859-1');
-            $handle = fopen('php://temp', 'r+'); // Open a temporary file
-            fwrite($handle, $content); // Write converted content to temporary file
-            rewind($handle); // Reset file pointer
+            if ($this->isFileStream($input)) {
+                // For streams, read and convert in chunks
+                $tempHandle = fopen('php://temp', 'r+');
+                rewind($handle); // Reset original stream pointer
+                while (!feof($handle)) {
+                    $chunk = fread($handle, 8192); // Read in 8KB chunks
+                    $convertedChunk = mb_convert_encoding($chunk, 'UTF-8', 'ISO-8859-1');
+                    fwrite($tempHandle, $convertedChunk);
+                }
+                fclose($handle);
+                $handle = $tempHandle;
+                rewind($handle);
+            } else {
+                // For regular files, we can read the whole content
+                $content = file_get_contents($input);
+                $content = mb_convert_encoding($content, 'UTF-8', 'ISO-8859-1');
+                $handle = fopen('php://temp', 'r+');
+                fwrite($handle, $content);
+                rewind($handle);
+            }
         }
         
         // Precompile column mappings (Done once, not for every row)
@@ -524,7 +559,7 @@ class CsvReader
         $this->results['status'] = true; // Set status to true
         $this->results['total_error_rows'] = $totalErrorRows; // Count total error rows
         $this->results['error_count'] = count($this->results['errors']); // The sum of all errors in all columns
-
+        $this->results['isRegular'] = $isRegular;
         if (self::$is_downloadable) {
             $this->storeErrorRows($this->results['rows_with_errors'], $header); // Store error rows in a CSV file
             $this->results['downloadable'] = self::$is_downloadable; // Set downloadable status
@@ -869,18 +904,18 @@ class CsvReader
      * This method checks the file extension and can also validate the content
      * to ensure it adheres to CSV format.
      *
-     * @param string $file_path Path to the file to be checked.
+     * @param string $input Path to the file to be checked.
      * @return bool True if the file is a valid CSV, false otherwise.
      */
-    public function isValidCsvFile(string $file_path): bool
+    public function isValidCsvFile(string $input): bool
     {
 
         // Check the file extension
-        $file_extension = pathinfo($file_path, PATHINFO_EXTENSION);
+        $file_extension = pathinfo($input, PATHINFO_EXTENSION);
         if (strtolower($file_extension) !== 'csv') {
             // Optionally check MIME type for temporary files
             $finfo = finfo_open(FILEINFO_MIME_TYPE);
-            $mime_type = finfo_file($finfo, $file_path);
+            $mime_type = finfo_file($finfo, $input);
             finfo_close($finfo);
             if ($mime_type !== 'text/plain' && $mime_type !== 'text/csv') {
                 return false; // Invalid MIME type
@@ -888,6 +923,24 @@ class CsvReader
         }
 
         return true; // Valid CSV file
+    }
+
+    private function isFileStream($input): bool
+    {
+        // Check if it's a PHP stream
+        if (is_resource($input) && get_resource_type($input) === 'stream') {
+            return true;
+        }
+        return false;
+    }
+
+    private function isFileUploaded($input): bool 
+    {
+        // Check if it's an uploaded file array (from $_FILES)
+        if (is_array($input) && isset($input['tmp_name'])) {
+            return true;
+        }
+        return false;
     }
 
 }

@@ -106,7 +106,8 @@ class CsvProcessor
                 }
             });
             $this->reader->setCallback('custom_validation', $this);
-            $result = $this->reader->read(__DIR__ . '/actual_data.csv');
+            $result = $this->reader->read(__DIR__ . '/CsvReader/actual_data.csv');
+            print_r($result);
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
         }
@@ -117,11 +118,9 @@ class CsvProcessor
         $errors = [];
 
         // check if company exists
-        if ($row['company'] !== 'NWJS') {
+        if ($row['company'] !== 'APPLE') {
             $errors[] = "Company doesn't exists in the system. ('" . $row['company'] . "')";
         }
-
-
 
         return [
             'status' => empty($errors),

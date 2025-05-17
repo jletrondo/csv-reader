@@ -44,7 +44,6 @@ test('stores error rows in custom directory path', function () {
     $reader->setIsDownloadable(true);
 
     $result = $reader->read($file);
-    print_r($result);
 
     // The error CSV should be created in the custom directory
     $customErrorDir = $reader->getDirectoryPath();
@@ -63,3 +62,71 @@ test('stores error rows in custom directory path', function () {
     unlink($file);
     unlink($customErrorDir . $errorCsvPath);
 });
+
+test('handles uploaded file from $_FILES', function () {
+    // Create a CSV file with test data
+    $csvContent = <<<CSV
+    name,email
+    John Doe,john@example.com
+    Jane Smith,jane@example.com
+    CSV;
+    
+    // Create a temporary file to simulate upload
+    $tempFile = tempnam(sys_get_temp_dir(), 'csv_');
+    file_put_contents($tempFile, $csvContent);
+    
+    // Simulate $_FILES array
+    $files = [
+        'tmp_name' => $tempFile,
+        'name' => 'test.csv',
+        'type' => 'text/csv',
+        'size' => filesize($tempFile),
+        'error' => 0
+    ];
+    
+    $reader = new CsvReader(['columns' => $this->columns]);
+    $result = $reader->read($files);
+    
+    // Verify the results
+    expect($result['status'])->toBeTrue();
+    expect($result['rows_processed'])->toHaveCount(2);
+    expect($result['rows_processed'][0]['name'])->toBe('John Doe');
+    expect($result['rows_processed'][0]['email'])->toBe('john@example.com');
+    expect($result['rows_processed'][1]['name'])->toBe('Jane Smith');
+    expect($result['rows_processed'][1]['email'])->toBe('jane@example.com');
+    
+    // Clean up
+    unlink($tempFile);
+});
+
+test('handles reading from a file stream', function () {
+    // Create a CSV file with test data
+    $csvContent = <<<CSV
+    name,email
+    John Doe,john@example.com
+    Jane Smith,jane@example.com
+    CSV;
+    
+    // Create a temporary file to simulate stream
+    $tempFile = tempnam(sys_get_temp_dir(), 'csv_');
+    file_put_contents($tempFile, $csvContent);
+    
+    // Open the file as a stream
+    $stream = fopen($tempFile, 'r');
+    
+    $reader = new CsvReader(['columns' => $this->columns]);
+    $result = $reader->read($stream);
+    
+    // Verify the results
+    expect($result['status'])->toBeTrue();
+    expect($result['rows_processed'])->toHaveCount(2);
+    expect($result['rows_processed'][0]['name'])->toBe('John Doe');
+    expect($result['rows_processed'][0]['email'])->toBe('john@example.com');
+    expect($result['rows_processed'][1]['name'])->toBe('Jane Smith');
+    expect($result['rows_processed'][1]['email'])->toBe('jane@example.com');
+    
+    // Clean up
+    unlink($tempFile);
+});
+
+

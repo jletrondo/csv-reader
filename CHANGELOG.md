@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.5.0] - 2025-05-17
+### Added
+- Added support for file streams and uploaded files in `CsvReader::read()`. The method now accepts both file paths and file streams as input.
+- Added validation for stream resource types and proper stream handling.
+
+### Fixed
+- Various issues when uploading file streams.
+- Minor bugs
+
+### Changed
+- Updated readme
+
 ## [1.4.0] - 2025-05-16
 ### Added
 - Validation in `CsvReader::read()` to detect and flag rows with an incorrect number of columns (extra or missing columns compared to the header). Such rows are now reported as errors and skipped from further processing. 

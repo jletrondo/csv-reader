@@ -136,9 +136,7 @@ Each column definition in the `columns` parameter supports the following options
 - **name** (required): The key name for the value in the resulting associative array.
 - **column_name** (required): The header name as it appears in the CSV file.
 - **type** (optional): The expected data type. Supported types: `string`, `integer`, `float`, `boolean`, `date`.
-- **min_length** (optional): The minimum allowed length for the value.
-- **max_length** (optional): The maximum allowed length for the value.
-- **validate** (optional): Pipe-separated validation rules. Supported rules: `required`, `lowercase`, `uppercase`, `strip_tags`. (More validations will be added soon.)
+- **validate** (optional): Pipe-separated validation rules. Supported rules: `required`, `lowercase`, `uppercase`, `strip_tags`, `unique`, `min_length`, `max_length`. (More validations will be added soon.)
 - **allowed_values** (optional): An array of allowed values for the column. If set, the value in the CSV must match one of the values in this array. Example: `'allowed_values' => ['active', 'inactive']`.
 
 
