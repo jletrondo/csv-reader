@@ -395,6 +395,10 @@ class CsvReader
                 rewind($handle);
             }
         }
+
+        if (!$this->has_header) {
+            return $this->readWithoutHeaders($input);
+        }
         
         // Precompile column mappings (Done once, not for every row)
         $columnNameToKey = [];
@@ -951,4 +955,63 @@ class CsvReader
         return false;
     }
 
+    private function readWithoutHeaders($filePath) {
+        $handle = fopen($filePath, 'r');
+
+        if ($handle === false) {
+            return $this->results = [
+                'status' => false,
+                'rows_processed' => [],
+                'error' => "Unable to open file: $filePath",
+            ]; 
+        }
+
+        $expectedColumnCount = null; // Initialize expected column count
+        $rowIndex = 0; // Initialize row index
+        $skippedRows = []; // Initialize array to record skipped rows
+
+        while (($row = fgetcsv($handle, 0, $this->delimiter, $this->enclosure)) !== false) {
+            $rowIndex++; // Increment row index
+
+            // Check for empty rows
+            if (empty(array_filter($row))) {
+                $skippedRows[] = $rowIndex; // Record the index of the skipped row
+                continue; // Skip empty rows
+            }
+
+            // Set expected column count on the first valid row
+            if ($expectedColumnCount === null) {
+                $expectedColumnCount = count($row);
+            }
+
+            // Validate column count
+            if (count($row) !== $expectedColumnCount) {
+                $this->results['errors'][] = "Row has incorrect column count (expected $expectedColumnCount, got " . count($row) . ").";
+                continue; // Skip further processing for this row
+            }
+
+            // Trim data in the row
+            $trimmedRow = array_map('trim', $row);
+            $this->results['rows_processed'][] = [
+                'row' => $rowIndex, // Include row index
+                'data' => $trimmedRow // Store the trimmed row
+            ]; 
+            $this->results['processed']++;
+        }
+
+        // Record skipped rows in results
+        if (!empty($skippedRows)) {
+            $this->results['skipped_rows'] = $skippedRows;
+        }
+
+        $this->results['status'] = true;
+
+        fclose($handle);
+        return $this->results;
+    }
+
+    public function toJSON(): string
+    {
+        return isset($this->results) ? json_encode($this->results) : json_encode(['error' => 'No results available']);
+    }
 }

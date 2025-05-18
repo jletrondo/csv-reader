@@ -1,4 +1,12 @@
 # Changelog
+## [1.5.2] - 2025-05-19
+### Added
+- Added support for CSV files without headers in `CsvReader::read()`. The method can now process files that do not contain a header row, allowing for more flexible input formats. When no headers are present, the columns will be indexed numerically (0, 1, 2, ...).
+- Empty rows are now automatically skipped during processing, but their occurrence is recorded for reference.
+- Added the `toJSON()` method to output results in JSON format, providing a structured representation of the processed data.
+
+### Fixed
+- Fixed an issue where processing CSV files without headers would lead to incorrect column mapping and validation errors.
 
 ## [1.5.1] - 2025-05-18
 ### Added

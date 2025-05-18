@@ -94,3 +94,60 @@ test('should still accept headers with parenthesis eg. birthday(M/D/Y)', functio
     expect($result['rows_processed'][1]['birthday'])->toBe('05/15/2001');
     unlink($file);
 });
+
+test('should still work even without headers', function () {
+    $csv = <<<CSV
+        John,john@example.com
+        Jane,jane@example.com
+        CSV;
+    $file = tempnam(sys_get_temp_dir(), 'csv_');
+    file_put_contents($file, $csv);
+
+    $reader = new CsvReader(['has_header' => false]);
+    $result = $reader->read($file);
+    expect($result['status'])->toBeTrue();
+    expect($result['rows_processed'])->toHaveCount(2);
+    expect($result['rows_processed'][0]['row'])->toBe(1);
+    expect($result['rows_processed'][0]['data'][0])->toBe('John');
+    expect($result['rows_processed'][0]['data'][1])->toBe('john@example.com');
+    expect($result['rows_processed'][1]['row'])->toBe(2);
+    expect($result['rows_processed'][1]['data'][0])->toBe('Jane');
+    expect($result['rows_processed'][1]['data'][1])->toBe('jane@example.com');
+    unlink($file);
+});
+
+test('should process CSV data correctly even when there are empty rows and no headers', function () {
+    $csv = <<<CSV
+            John,john@example.com
+
+            Jane,jane@example.com
+            ,
+            CSV;
+    $file = tempnam(sys_get_temp_dir(), 'csv_');
+    file_put_contents($file, $csv);
+
+    $reader = new CsvReader(['has_header' => false]);
+    $result = $reader->read($file);
+
+    // Check if the status is true, indicating successful processing
+    expect($result['status'])->toBeTrue();
+    
+    // Verify the first row of data
+    expect($result['rows_processed'][0]['row'])->toBe(1);
+    expect($result['rows_processed'][0]['data'][0])->toBe('John');
+    expect($result['rows_processed'][0]['data'][1])->toBe('john@example.com');
+    
+    // Verify the second row of data
+    expect($result['rows_processed'][1]['row'])->toBe(3);
+    expect($result['rows_processed'][1]['data'][0])->toBe('Jane');
+    expect($result['rows_processed'][1]['data'][1])->toBe('jane@example.com');
+    
+    // Check overall processing results
+    expect($result['processed'])->toBe(2);
+    expect($result['error_count'])->toBe(0);
+    expect($result['skipped_rows'])->toHaveCount(2); // Expect one empty row to be recorded as an error
+    
+    unlink($file);
+});
+
+

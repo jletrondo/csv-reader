@@ -116,3 +116,37 @@ test('passes with valid column definitions and csv', function () {
     expect($result['error'])->toBeEmpty();
     unlink($file);
 });
+
+test('returns JSON output for valid CSV', function () {
+    $columns = [
+        [
+            'column_name' => 'id',
+            'name' => 'id',
+            'type' => 'integer',
+            'validate' => 'required'
+        ],
+        [
+            'column_name' => 'email',
+            'name' => 'email',
+            'type' => 'string',
+            'validate' => 'required'
+        ],
+    ];
+
+    $csv = <<<CSV
+        id,email
+        1,john@example.com
+        2,jane@example.com
+        CSV;
+    $file = tempnam(sys_get_temp_dir(), 'csv_');
+    file_put_contents($file, $csv);
+
+    $reader = new CsvReader(['columns' => $columns]);
+    $reader->read($file);
+    $jsonOutput = $reader->toJSON();
+    expect($jsonOutput)->toBeJson();
+
+    unlink($file);
+});
+
+
