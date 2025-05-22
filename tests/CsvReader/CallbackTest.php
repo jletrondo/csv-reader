@@ -49,6 +49,7 @@ test('callback can modify a row', function () {
     $callback = new class {
         public function uppercaseName($row, $rowIndex) {
             $row['name'] = strtoupper($row['name']);
+            $row['email'] = strtolower($row['email']);
             return ['status' => true, 'row' => $row];
         }
     };

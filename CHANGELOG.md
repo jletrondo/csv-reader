@@ -1,4 +1,8 @@
 # Changelog
+## [1.5.3] - 2025-05-21
+### Changed
+- Enhanced header processing in `CsvReader::read()` to automatically remove extra spaces between words in headers. This ensures that headers are normalized, improving data consistency and reducing potential errors during processing.
+
 ## [1.5.2] - 2025-05-19
 ### Added
 - Added support for CSV files without headers in `CsvReader::read()`. The method can now process files that do not contain a header row, allowing for more flexible input formats. When no headers are present, the columns will be indexed numerically (0, 1, 2, ...).

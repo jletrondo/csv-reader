@@ -151,3 +151,44 @@ test('should process CSV data correctly even when there are empty rows and no he
 });
 
 
+test('should process CSV header by removing extra spaces between words', function () {
+    $csv = <<<CSV
+            name,email,referred  by
+            John,john@example.com,
+            Jane,jane@example.com,
+            CSV;
+    $file = tempnam(sys_get_temp_dir(), 'csv_');
+    file_put_contents($file, $csv);
+
+    $columns = [
+        [
+            'column_name' => 'name',
+            'name' => 'name',
+            'type' => 'string',
+            'validate' => 'required',
+        ],
+        [
+            'column_name' => 'email',
+            'name' => 'email',
+            'type' => 'string',
+            'validate' => 'required',
+        ],
+        [
+            'column_name' => 'referred by',
+            'name' => 'referred_by',
+            'type' => 'string',
+        ],
+    ];
+
+    $reader = new CsvReader(['columns' => $columns]);
+    $result = $reader->read($file);
+    print_r($result);
+
+    // Check if the status is true, indicating successful processing
+    expect($result['status'])->toBeTrue();
+    // expect($result['error'])->toContain('missing the following columns');
+    // expect($result['error'])->toContain('not defined in the system');
+
+    unlink($file);
+});
+

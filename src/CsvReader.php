@@ -433,6 +433,7 @@ class CsvReader
                     // Remove BOM, trim, and strip anything in parentheses (and the parentheses)
                     $cleaned = trim($this->removeBom($value));
                     $cleaned = preg_replace('/\s*\(.*?\)\s*/', '', $cleaned);
+                    $cleaned = preg_replace('/\s+/', ' ', $cleaned); // Replace multiple spaces with a single space
                     return $cleaned;
                 }, $row), function($v) { return $v !== ''; });
 

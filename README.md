@@ -1,7 +1,8 @@
 # CsvReader Library
 
 ## Overview
-The CsvReader library is a PHP class designed to facilitate the reading and processing of CSV files. It provides various features for handling CSV data, including validation, error handling, and customizable processing through callback functions.
+The CsvReader library is a PHP class designed to facilitate the reading and processing of CSV files with headers at the top row. It provides various features for handling CSV data, including validation, error handling, and customizable processing through callback functions.
+
 
 ## Motivation
 
@@ -136,7 +137,18 @@ Each column definition in the `columns` parameter supports the following options
 - **name** (required): The key name for the value in the resulting associative array.
 - **column_name** (required): The header name as it appears in the CSV file.
 - **type** (optional): The expected data type. Supported types: `string`, `integer`, `float`, `boolean`, `date`.
-- **validate** (optional): Pipe-separated validation rules. Supported rules: `required`, `lowercase`, `uppercase`, `strip_tags`, `unique`, `min_length`, `max_length`. (More validations will be added soon.)
+- **validate** (optional): Pipe-separated validation rules that determine how the data in the column should be checked for correctness. Supported rules include:
+  - `required`: Ensures that the value must be present.
+  - `lowercase`: Converts the value to lowercase.
+  - `uppercase`: Converts the value to uppercase.
+  - `strip_tags`: Removes any HTML and PHP tags from the value.
+  - `unique`: Ensures that the value is unique across the dataset.
+  - `min_length`: Sets the minimum number of characters required for the value.
+  - `max_length`: Sets the maximum number of characters allowed for the value.
+  - `htmlentities`: Converts special characters to HTML entities.
+  - `strip_quotes`: Removes quotes from the value.
+  - `urlencode`: Encodes the value for use in a URL.
+  (More validations will be added soon.)
 - **allowed_values** (optional): An array of allowed values for the column. If set, the value in the CSV must match one of the values in this array. Example: `'allowed_values' => ['active', 'inactive']`.
 
 
@@ -160,29 +172,25 @@ class CsvProcessor
                 'name'        => 'company', 
                 'column_name' => 'company', 
                 'type'        => 'string', 
-                'max_length'  => 7, 
-                'validate'    => 'uppercase'
+                'validate'    => 'uppercase|max_length[7]'
             ],
             [
                 'name'        => 'name', 
                 'column_name' => 'fullname',
                 'type'        => 'string',
-                'max_length'  => 20, 
-                'validate'    => 'required|uppercase'
+                'validate'    => 'required|uppercase|max_length[20]'
             ],
             [
                 'name'        => 'bdate',
                 'column_name' => 'birth date',
                 'type'        => 'date',
-                'max_length'  => 20,
-                'validate'    => 'required|uppercase'
+                'validate'    => 'required|uppercase|max_length[20]'
             ],
             [
                 'name'        => 'status',
                 'column_name' => 'active',
                 'type'        => 'string',
-                'max_length'  => 20,
-                'validate'    => 'required|uppercase'
+                'validate'    => 'required|uppercase|max_length[20]'
             ],
         ];
 
