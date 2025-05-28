@@ -1,4 +1,6 @@
+# Start of Selection
 vendor/
 composer.lock
 *.csv
+!test_data*.csv
 upcoming*

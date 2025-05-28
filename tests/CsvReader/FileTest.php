@@ -131,4 +131,77 @@ test('handles reading from a file stream', function () {
     unlink($tempFile);
 });
 
+test('ignores empty rows', function () {
+    // Create a CSV file with test data including empty rows
+    // $csvContent = <<<CSV
+    // name,email
+    // John Doe,john@example.com
+    // Jane Smith,jane@example.com
+    // ,
+    // ,
+    // ,
+    // ,
+    // CSV;
+
+    // // Create a temporary file to simulate the CSV input
+    // $tempFile = tempnam(sys_get_temp_dir(), 'csv_');
+    // file_put_contents($tempFile, $csvContent);
+    $filePath = __DIR__ . '/test_data_with_empty_rows.csv'; // Ensure the correct path to the CSV file
+    $reader = new CsvReader(['columns' => $this->columns]);
+    $result = $reader->read($filePath);
+
+    // Verify the results
+    expect($result['status'])->toBeTrue();
+    print_r($result);
+    expect($result['rows_processed'])->toHaveCount(6); // Should count only non-empty rows
+    expect($result['rows_with_errors'])->toHaveCount(0);
+    expect($result['rows_processed'][0]['name'])->toBe('John Doe');
+    expect($result['rows_processed'][0]['email'])->toBe('john.doe@example.com');
+    expect($result['rows_processed'][4]['name'])->toBe('Chris Evans');
+    expect($result['rows_processed'][4]['email'])->toBe('chris.evans@example.com');
+    // expect($result['rows_processed'][1]['name'])->toBe('Jane Smith');
+    // expect($result['rows_processed'][1]['email'])->toBe('jane@example.com');
+    // expect($result['rows_processed'][2]['name'])->toBe('Michael Johnson');
+    // expect($result['rows_processed'][2]['email'])->toBe('michael.johnson@example.com');
+    
+    // Clean up
+    // unlink($tempFile);
+});
+
+test('should not process data after an empty row', function () {
+    // Create a CSV file with test data including empty rows
+    $csvContent = <<<CSV
+    name,email
+    John Doe,john@example.com
+
+    Jane Smith,jane@example.com
+
+    Michael Johnson,michael.johnson@example.com
+    Chris Evans,chris.evans@example.com
+    CSV;
+
+    // Create a temporary file to simulate the CSV input
+    $tempFile = tempnam(sys_get_temp_dir(), 'csv_');
+    file_put_contents($tempFile, $csvContent);
+
+    $reader = new CsvReader(['columns' => $this->columns]);
+    $result = $reader->read($tempFile);
+
+    // print_r($result);
+    // Verify the results
+    expect($result['status'])->toBeTrue();
+    expect($result['rows_processed'])->toHaveCount(4);
+    expect($result['rows_processed'][0]['name'])->toBe('John Doe');
+    expect($result['rows_processed'][0]['email'])->toBe('john@example.com');
+    
+    // Clean up
+    unlink($tempFile);
+});
+
+
+
+
+
+
+
 

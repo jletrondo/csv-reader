@@ -182,7 +182,6 @@ test('should process CSV header by removing extra spaces between words', functio
 
     $reader = new CsvReader(['columns' => $columns]);
     $result = $reader->read($file);
-    print_r($result);
 
     // Check if the status is true, indicating successful processing
     expect($result['status'])->toBeTrue();

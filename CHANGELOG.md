@@ -1,4 +1,17 @@
 # Changelog
+
+## [1.5.4] - 2025-05-28
+### Added
+- Added a check for the CSV reader to ignore empty rows during processing. If an empty row is encountered, it will be skipped without halting the processing of subsequent data. For example, if the CSV contains the following rows: 
+  ```
+  name,email
+  John Doe,john@example.com
+  
+  Jane Smith,jane@example.com
+  ```
+  The processing will continue and include both "John Doe" and "Jane Smith" despite the empty row in between.
+- New test case to verify that processing continues when an empty row is encountered, allowing subsequent data to be processed.
+
 ## [1.5.3] - 2025-05-21
 ### Changed
 - Enhanced header processing in `CsvReader::read()` to automatically remove extra spaces between words in headers. This ensures that headers are normalized, improving data consistency and reducing potential errors during processing.

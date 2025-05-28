@@ -317,6 +317,7 @@ class CsvReader
         $totalErrorRows = 0; // Total count of error rows
         $handle = null;
         $totalRows = 0; /// for progress callback
+        $emptyRowCount = 0;
 
         // Handle different input types
         if ($this->isFileStream($input)) {
@@ -425,6 +426,12 @@ class CsvReader
                 $this->results['error'] = "The uploaded file has too many errors. Please take time to review and try again.";
                 $this->results['total_error_rows'] = $totalErrorRows;
                 return $this->results;
+            }
+
+            // Check for empty rows
+            if (empty(array_filter($row))) {
+                $emptyRowCount++;
+                continue;
             }
 
             if ($rowIndex === 1 && $this->has_header) {
@@ -566,6 +573,7 @@ class CsvReader
         $this->results['status'] = true; // Set status to true
         $this->results['total_error_rows'] = $totalErrorRows; // Count total error rows
         $this->results['error_count'] = count($this->results['errors']); // The sum of all errors in all columns
+        $this->results['empty_row_count'] = $emptyRowCount;
         $this->results['csv_file_input_type'] = match(true) {
             $this->isStream => 'stream',
             $this->isUploaded => 'uploaded',
