@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.5.5] - 2025-06-01
+### Added
+- Added exception handling in `CsvReader::read()` to capture and return error messages for debugging purposes. This enhancement is documented in the [README](README.md) file, where users can find detailed error messages when exceptions occur during CSV processing, improving the ability to diagnose issues.
+- Introduced default values for the `callBackResult` in callback processing to ensure consistent behavior when no keys are returned. The default structure is as follows:
+```php
+  $callBackResult = [
+    'status' = true,
+    'column_errors' = [],
+    'exception = '' // New key
+  ];
+```
+- Added tests to verify the correct handling of the new `exception` key in the `callBackResult` structure, ensuring that error messages are captured and returned as expected during CSV processing. These tests validate that the system behaves correctly when exceptions occur, improving overall reliability and debuggability.
+
+
+### Fixed
+- Resolved an issue where an exception was thrown if the custom validation callback did not return a `status` key, ensuring smoother error handling during CSV processing.
+
 ## [1.5.4] - 2025-05-28
 ### Added
 - Added a check for the CSV reader to ignore empty rows during processing. If an empty row is encountered, it will be skipped without halting the processing of subsequent data. For example, if the CSV contains the following rows: 
