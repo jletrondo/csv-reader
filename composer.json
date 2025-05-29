@@ -34,6 +34,7 @@
     }
   },
   "scripts": {
-    "test": "@php vendor/bin/pest"
+    "test": "@php vendor/bin/pest",
+    "test-file": "@php vendor/bin/pest"
   }
 }

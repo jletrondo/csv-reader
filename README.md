@@ -234,12 +234,90 @@ The `CsvReader` class now supports a **progress callback** feature, allowing you
 - [`setProgressCallback()` method in CsvReader.php](src/CsvReader.php)
 - [Example usage in tests/CsvReaderUsage.php](tests/CsvReaderUsage.php)
 
+### Exception Handling Example (Added in v1.5.5)
+
+The `CsvReader` library allows for custom validation and exception handling during the reading process. To ensure robust error handling, all custom validations must be wrapped inside a try-catch block. Below is an example demonstrating how to implement exception handling in your CSV processing. 
+
+```php
+require 'vendor/autoload.php';
+
+use Jletrondo\CsvReader\CsvReader;
+
+class CsvProcessor
+{
+    private $columns;
+    private $reader;
+
+    public function __construct()
+    {
+        $this->columns = [
+            ['column_name' => 'name', 'name' => 'name', 'type' => 'string', 'validate' => 'required'],
+            ['column_name' => 'email', 'name' => 'email', 'type' => 'string', 'validate' => 'required|unique'],
+        ];
+
+        $this->reader = new CsvReader(['columns' => $this->columns]);
+    }
+
+    public function process()
+    {
+        $csv = <<<CSV
+            name,email
+            Jane,jane@example.com
+        CSV;
+        $file = tempnam(sys_get_temp_dir(), 'csv_');
+        file_put_contents($file, $csv);
+
+        $callback = new class {
+            public function exceptionValidation($row, $rowIndex) {
+                $exceptionMsg = "";
+                $errors = [];
+               
+                try {
+                    if($row['email']) {
+                        throw new \Exception('Exception error message');
+                    }
+                } catch (\Exception $e) {
+                    $errors[] = "The row has encountered an internal error. Please check and try again.";
+                    $exceptionMsg = $e->getMessage();
+                }
+
+                return [
+                    'status' => empty($errors),
+                    'column_errors' => $errors ?? [],
+                    'exception' => $exceptionMsg
+                ];
+            }
+        };
+
+        $this->reader->setCallback('exceptionValidation', $callback);
+        $result = $this->reader->read($file);
+
+        print_r($result);
+        unlink($file);
+    }
+}
+
+// Create an instance of CsvProcessor and process the CSV file
+$csvProcessor = new CsvProcessor();
+$csvProcessor->process();
+```
+
+### Explanation
+In this example, the `CsvProcessor` class initializes the `CsvReader` with column definitions and sets a callback that simulates an exception being thrown. The `process` method attempts to read a CSV file and handles any exceptions that occur, providing feedback on the error. This allows for better debugging and user feedback during CSV processing.
+
 ## Testing
 To run the tests, use the following command:
 ```bash
 composer install
 composer test
 ```
+This will run all test files
+
+To run a specific test file just use the following command:
+```bash
+composer test -- tests/csvreader/exceptiontest.php
+```
+
 
 ## Error Handling
 The library tracks errors encountered during the reading process. If errors occur, they are stored in an array, and an error file can be generated for review.

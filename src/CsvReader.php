@@ -110,7 +110,8 @@ class CsvReader
         'rows_processed' => [],
         'rows_with_errors' => [],
         'total_error_rows' => 0,
-        'error_count' => 0
+        'error_count' => 0,
+        'exception' => []
     ];
 
     private $isStream = false;
@@ -521,6 +522,16 @@ class CsvReader
                     [$this->callback_context, $this->callback],
                     [$assoc_row, $rowIndex]
                 );
+
+                // Set default status to true if not set
+                $callBackResult['status']        = $callBackResult['status'] ?? true;
+                $callBackResult['column_errors'] = $callBackResult['column_errors'] ?? []; // Default to empty array
+                $callBackResult['exception']     = $callBackResult['exception'] ?? ''; // Default to empty string
+
+                // Check for exception messages in the callback result
+                if ($callBackResult['status'] === false && isset($callBackResult['exception'])) {
+                    $this->results['exception'][] = ['message' => $callBackResult['exception'], 'row' => $rowIndex];
+                }
 
                 // Implement skip feature: if callback returns ['skip' => true], skip this row without error
                 if (isset($callBackResult['skip']) && $callBackResult['skip'] === true) {

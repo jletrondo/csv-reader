@@ -152,7 +152,6 @@ test('ignores empty rows', function () {
 
     // Verify the results
     expect($result['status'])->toBeTrue();
-    print_r($result);
     expect($result['rows_processed'])->toHaveCount(6); // Should count only non-empty rows
     expect($result['rows_with_errors'])->toHaveCount(0);
     expect($result['rows_processed'][0]['name'])->toBe('John Doe');
