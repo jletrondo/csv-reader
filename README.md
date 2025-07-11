@@ -42,10 +42,16 @@ $csvReader = new CsvReader($params);
   - `error_threshold`: If the error count exceeds this threshold, the CSV reader stops reading the data (default: `1000`).
 
 ### Reading a CSV File
-To read a CSV file, use the `read` method. You can also provide a callback function to process each row.
+The `read` method of the `CsvReader` class is used to process a CSV file and return the results of the operation, including any validation errors, processed rows, and summary information.
+The `read` method accepts two parameters:
+
+- **$file_path**: The path to the CSV file you want to read.
+- **$encoding** (optional): The character encoding of the CSV file (e.g., `'UTF-8'`, `'ISO-8859-1'`). If not specified, the default encoding will be used.
+
+Example usage:
 
 ```php
-$results = $csvReader->read('path/to/your/file.csv');
+$results = $csvReader->read('path/to/your/file.csv', 'ISO-8859-1');
 ```
 
 ### Callback Function

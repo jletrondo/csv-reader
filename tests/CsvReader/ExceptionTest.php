@@ -42,8 +42,6 @@ test('custom validation exception error is returned', function () {
     $reader->setCallback('exceptionValidation', $callback);
     $result = $reader->read($file);
 
-    print_r($result);
-
     expect($result['status'])->toBeTrue();
     expect($result['total_error_rows'])->toBe(1);
     expect(!empty($result['exception']))->toBeTrue();

@@ -88,7 +88,7 @@ class CsvReader
      * The maximum number of errors allowed before the CSV reader stops processing further rows.
      * Default is 1000.
      */
-    private static $error_threshold = 1000;
+    private static $error_threshold = 2000;
 
     /**
      * @var array $results
@@ -310,7 +310,7 @@ class CsvReader
      * @return array An associative array containing the status of the read operation, 
      *               number of processed rows, and any errors encountered.
      */
-    public function read($input): array
+    public function read($input, string|null $from_encoding = 'ISO-8859-1'): array
     {
         $rowIndex = 0; // Initialize row index
         $header = []; // Initialize header array
@@ -382,7 +382,7 @@ class CsvReader
                 rewind($handle); // Reset original stream pointer
                 while (!feof($handle)) {
                     $chunk = fread($handle, 8192); // Read in 8KB chunks
-                    $convertedChunk = mb_convert_encoding($chunk, 'UTF-8', 'ISO-8859-1');
+                    $convertedChunk = mb_convert_encoding($chunk, 'UTF-8', $from_encoding);
                     fwrite($tempHandle, $convertedChunk);
                 }
                 fclose($handle);
@@ -391,7 +391,7 @@ class CsvReader
             } else {
                 // For regular files, we can read the whole content
                 $content = file_get_contents($input);
-                $content = mb_convert_encoding($content, 'UTF-8', 'ISO-8859-1');
+                $content = mb_convert_encoding($content, 'UTF-8', $from_encoding);
                 $handle = fopen('php://temp', 'r+');
                 fwrite($handle, $content);
                 rewind($handle);
@@ -421,7 +421,7 @@ class CsvReader
             $rowIndex++; // Increment row index
 
             // Exit if too may errors
-            if($errorCount > self::$error_threshold) {
+            if(self::$error_threshold > 0 && $errorCount > self::$error_threshold) {
                 $this->results['status'] = true;
                 $this->results['error_count'] = $errorCount;
                 $this->results['error'] = "The uploaded file has too many errors. Please take time to review and try again.";

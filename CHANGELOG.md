@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.6] - 2025-07-11
+### Changed
+- Updated the `CsvReader::read()` method to include a new optional parameter, `$from_encoding`, which defaults to `ISO-8859-1`. With this change, if the input CSV file is not already in UTF-8 encoding (as detected by the absence of a UTF-8 BOM), the method will automatically convert the file's contents from the specified source encoding (defaulting to `ISO-8859-1`) to UTF-8. This ensures that special and non-ASCII characters are handled correctly, improving compatibility with a wider range of CSV files that may use different character encodings.
+- In `CsvReader.php`, the `$error_threshold` property controls how many errors are allowed before stopping CSV processing. If `$error_threshold` is set to `0`, the error count check is disabled, and the reader will process all rows regardless of how many errors are encountered. This allows users to process large files without interruption, even if many rows contain errors.
+- `$error_threshold` default value is set to 2000.
+
 ## [1.5.5] - 2025-06-01
 ### Added
 - Added exception handling in `CsvReader::read()` to capture and return error messages for debugging purposes. This enhancement is documented in the [README](README.md) file, where users can find detailed error messages when exceptions occur during CSV processing, improving the ability to diagnose issues.

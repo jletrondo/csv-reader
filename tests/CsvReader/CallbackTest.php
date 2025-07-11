@@ -29,7 +29,6 @@ test('callback can reject a row', function () {
     };
     $reader->setCallback('rejectJane', $callback);
     $result = $reader->read($file);
-    print_r($result);
 
     expect($result['status'])->toBeTrue();
     expect($result['total_error_rows'])->toBe(1);

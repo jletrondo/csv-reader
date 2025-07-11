@@ -186,7 +186,6 @@ test('should not process data after an empty row', function () {
     $reader = new CsvReader(['columns' => $this->columns]);
     $result = $reader->read($tempFile);
 
-    // print_r($result);
     // Verify the results
     expect($result['status'])->toBeTrue();
     expect($result['rows_processed'])->toHaveCount(4);
