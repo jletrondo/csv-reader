@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.5.7] - 2025-09-04
+### Added
+- Improved encoding error detection in column validation by updating the pattern to include the '?' character. This enhancement allows the CSV reader to better identify unknown or invalid characters in data fields, increasing the reliability of data validation and error reporting.
+
 ## [1.5.6] - 2025-07-11
 ### Changed
 - Updated the `CsvReader::read()` method to include a new optional parameter, `$from_encoding`, which defaults to `ISO-8859-1`. With this change, if the input CSV file is not already in UTF-8 encoding (as detected by the absence of a UTF-8 BOM), the method will automatically convert the file's contents from the specified source encoding (defaulting to `ISO-8859-1`) to UTF-8. This ensures that special and non-ASCII characters are handled correctly, improving compatibility with a wider range of CSV files that may use different character encodings.

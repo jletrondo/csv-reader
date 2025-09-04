@@ -645,8 +645,9 @@ class CsvReader
             $validation_rules = $this->parseValidationRules($column['validate'] ?? '');
             
             // Unicode replacement character, disallowed symbols, and mojibake patterns
-            $pattern = '/[\x{FFFD}□▯▢]/u';
-            if ($value_exists && preg_match($pattern, $value) || preg_match($this->mojibake_pattern, $value)) {
+            // Add '?' to the pattern to check for unknown character
+            $pattern = '/[\x{FFFD}□▯▢\?]/u';
+            if ($value_exists && (preg_match($pattern, $value) || preg_match($this->mojibake_pattern, $value))) {
                 $errors[] = "$encoding_error_msg '{$column_name}'.";
             }
 
@@ -673,8 +674,8 @@ class CsvReader
 
             // strip_quotes
             if ($value_exists && isset($validation_rules['strip_quotes'])) {
-                $entry = str_replace('"', "", $assoc_row[$column_name]);
-		        $entry = str_replace("'", "", $assoc_row[$column_name]);
+                $entry = str_replace('"', '', $assoc_row[$column_name]);
+                $entry = str_replace("'", '', $entry);
                 $assoc_row[$column_name] = $entry;
             }
 
