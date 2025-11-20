@@ -654,12 +654,12 @@ class CsvReader
             // String manipulations
             // lowercase
             if ($value_exists && isset($validation_rules['lowercase'])) {
-                $assoc_row[$column_name] = strtolower($assoc_row[$column_name]);
+                $assoc_row[$column_name] = mb_strtolower($assoc_row[$column_name], 'UTF-8');
             }
 
             // uppercase
             if ($value_exists && isset($validation_rules['uppercase'])) {
-                $assoc_row[$column_name] = strtoupper($assoc_row[$column_name]);
+                $assoc_row[$column_name] = mb_strtoupper($assoc_row[$column_name], 'UTF-8');
             }
 
             // strip_tags
@@ -768,15 +768,15 @@ class CsvReader
 
     private function validateMinLength($value, $column_name, $min_length): ?string
     {
-        return (strlen((string)$value) < $min_length)
-            ? "The value in column '{$column_name}' is too short: Expected minimum length of {$min_length}, got " . strlen((string)$value)
+        return (mb_strlen((string)$value, 'UTF-8') < $min_length)
+            ? "The value in column '{$column_name}' is too short: Expected minimum length of {$min_length}, got " . mb_strlen((string)$value, 'UTF-8')
             : null;
     }
 
     private function validateMaxLength($value, $column_name, $max_length): ?string
     {
-        return (strlen((string)$value) > $max_length)
-            ? "The value in column '{$column_name}' is too long: Expected maximum length of {$max_length}, got " . strlen((string)$value)
+        return (mb_strlen((string)$value, 'UTF-8') > $max_length)
+            ? "The value in column '{$column_name}' is too long: Expected maximum length of {$max_length}, got " . mb_strlen((string)$value, 'UTF-8')
             : null;
     }
 
