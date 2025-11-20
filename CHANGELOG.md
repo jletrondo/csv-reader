@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.6.0] - 2025-11-20
+### Changed
+- **Internationalization improvement:** Changed all usages of `strtoupper`, `strtolower`, `strlen`, and similar string functions to their multi-byte safe equivalents (`mb_strtoupper`, `mb_strtolower`, `mb_strlen`, etc.).  
+  This ensures correct handling of Unicode and accented characters in CSV parsing, making name and other string fields fully compatible with international character sets.
+
+
 ## [1.5.7] - 2025-09-04
 ### Added
 - Improved encoding error detection in column validation by updating the pattern to include the '?' character. This enhancement allows the CSV reader to better identify unknown or invalid characters in data fields, increasing the reliability of data validation and error reporting.
